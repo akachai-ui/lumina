@@ -587,7 +587,7 @@ export default function DashboardPage() {
                   </div>
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-white px-2.5 py-1 rounded-lg border border-emerald-200 shrink-0">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>{isTermsAccepted ? "ยอมรับแล้ว" : "พร้อมทำงาน"}</span>
+                    <span>ผ่านการทดสอบแล้ว</span>
                   </span>
                 </div>
               </div>
