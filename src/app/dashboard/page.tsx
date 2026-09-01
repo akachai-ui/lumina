@@ -10,7 +10,6 @@ import {
   Loader2,
   Gift,
   CheckCircle2,
-  
   Heart,
   Award,
   Mail,
@@ -22,9 +21,11 @@ import {
   RefreshCw,
   Check,
   BadgeCheck,
+  FileCheck2,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/database";
+import TermsConsentModal from "@/components/TermsConsentModal";
 
 type Shop = Database["public"]["Tables"]["shops"]["Row"];
 type User = {
@@ -39,6 +40,9 @@ type User = {
   user_metadata?: {
     full_name?: string;
     avatar_url?: string;
+    terms_accepted?: boolean;
+    terms_accepted_at?: string;
+    terms_version?: string;
   };
 };
 
@@ -52,6 +56,7 @@ export default function DashboardPage() {
   const [creatingShop, setCreatingShop] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -70,7 +75,16 @@ export default function DashboardPage() {
           return;
         }
 
-        setUser(currentUser as User);
+        const typedUser = currentUser as User;
+        setUser(typedUser);
+
+        // Check if user has accepted the terms and conditions
+        const hasAcceptedTerms = typedUser.user_metadata?.terms_accepted === true;
+        if (!hasAcceptedTerms) {
+          setShowTermsModal(true);
+        } else {
+          setShowTermsModal(false);
+        }
 
         // Fetch shop associated with owner
         const { data: shopsData, error: shopError } = await supabase
@@ -167,6 +181,12 @@ export default function DashboardPage() {
     router.push("/login");
   };
 
+  const handleTermsAccepted = () => {
+    setShowTermsModal(false);
+    // Refresh user state to reflect accepted terms
+    setRefreshKey((prev) => prev + 1);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -194,8 +214,19 @@ export default function DashboardPage() {
       })
     : "ณ ตอนนี้";
 
+  const isTermsAccepted = user?.user_metadata?.terms_accepted === true;
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+      {/* First-Time Login Consent Modal */}
+      <TermsConsentModal
+        isOpen={showTermsModal}
+        userEmail={user?.email}
+        userName={user?.user_metadata?.full_name}
+        onAccepted={handleTermsAccepted}
+        onDeclined={handleSignOut}
+      />
+
       {/* Top Header Bar */}
       <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -210,7 +241,7 @@ export default function DashboardPage() {
             </Link>
             <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200/70">
               <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />
-              Auth Phase Passed 100%
+              Auth & Terms Verified
             </span>
           </div>
 
@@ -266,7 +297,7 @@ export default function DashboardPage() {
                   value={shopName}
                   onChange={(e) => setShopName(e.target.value)}
                   placeholder="เช่น ร้านทดสอบ 1 (Test Salon)"
-                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-base sm:text-sm focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
                 />
               </div>
 
@@ -279,7 +310,7 @@ export default function DashboardPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="081-xxx-xxxx"
-                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-base sm:text-sm focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
                 />
               </div>
 
@@ -321,6 +352,12 @@ export default function DashboardPage() {
                         <Award className="w-3.5 h-3.5 text-indigo-500" />
                         Verified Tester
                       </span>
+                      {isTermsAccepted && (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                          <FileCheck2 className="w-3.5 h-3.5 text-emerald-600" />
+                          PDPA Accepted
+                        </span>
+                      )}
                     </div>
 
                     <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
@@ -329,7 +366,7 @@ export default function DashboardPage() {
                     </h1>
 
                     <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl">
-                      การทดสอบระบบสิทธิ์ ยืนยันตัวตน และสร้างฐานข้อมูลร้านค้าของ Lumina ประสบความสำเร็จเรียบร้อย ข้อมูลผู้ใช้ของคุณถูกตรวจสอบและเชื่อมต่อกับระบบ Supabase Cloud อย่างปลอดภัยแล้วครับ
+                      การทดสอบระบบสิทธิ์ ยืนยันตัวตน และการยอมรับเงื่อนไข PDPA ของ Lumina ประสบความสำเร็จเรียบร้อย ข้อมูลผู้ใช้ของคุณถูกตรวจสอบและเชื่อมต่อกับระบบ Supabase Cloud อย่างปลอดภัยแล้วครับ
                     </p>
                   </div>
                 </div>
@@ -347,13 +384,13 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Authentication Verification Details Card */}
+            {/* Authentication & Terms Verification Details Card */}
             <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs">
               <div className="flex items-center justify-between pb-4 mb-6 border-b border-slate-100">
                 <div className="flex items-center gap-2">
                   <UserCheck className="w-5 h-5 text-indigo-600" />
                   <h2 className="text-base sm:text-lg font-extrabold text-slate-900">
-                    ข้อมูลผลการทดสอบการเข้าสู่ระบบ (Auth Test Details)
+                    ข้อมูลผลการทดสอบการเข้าสู่ระบบและเงื่อนไข (Auth & Terms Details)
                   </h2>
                 </div>
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
@@ -416,8 +453,20 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                {/* 6. Sign in time */}
+                {/* 6. Terms Consent Status */}
                 <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1">
+                    <FileCheck2 className="w-3 h-3 text-emerald-600" />
+                    <span>สถานะการยอมรับเงื่อนไข (PDPA)</span>
+                  </div>
+                  <div className="text-sm sm:text-base font-black text-emerald-700 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>{isTermsAccepted ? "ยอมรับเงื่อนไขแล้ว (v1.0)" : "รอยืนยัน"}</span>
+                  </div>
+                </div>
+
+                {/* 7. Sign in time */}
+                <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80 col-span-1 sm:col-span-2 lg:col-span-3">
                   <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1">
                     <Calendar className="w-3 h-3 text-slate-400" />
                     <span>เวลาที่ล็อกอินล่าสุด (Sign-in Time)</span>
@@ -443,13 +492,13 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Checklist: All Auth Test Routes Completed & Passed */}
+            {/* Checklist: All Auth & Terms Test Routes Completed & Passed */}
             <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <BadgeCheck className="w-5 h-5 text-emerald-600" />
                   <h3 className="text-base font-extrabold text-slate-900">
-                    ผลการทดสอบระบบสิทธิ์ทั้งหมด (Auth Checklist Summary):
+                    ผลการทดสอบระบบสิทธิ์และเงื่อนไขทั้งหมด (Auth & Terms Checklist):
                   </h3>
                 </div>
                 <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
@@ -520,13 +569,34 @@ export default function DashboardPage() {
                     <span>ผ่านการทดสอบแล้ว</span>
                   </span>
                 </div>
+
+                {/* Item 4: Terms & Privacy Consent Modal */}
+                <div className="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/40 flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="h-7 w-7 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                      <Check className="w-4 h-4 stroke-[3]" />
+                    </div>
+                    <div>
+                      <div className="text-xs sm:text-sm font-bold text-slate-900">
+                        4. ระบบป๊อปอัปยอมรับเงื่อนไขการใช้งาน & PDPA (First-Time Consent)
+                      </div>
+                      <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5">
+                        แสดงเงื่อนไขทดลองใช้ 2 เดือน และนโยบายความลับข้อมูลร้านค้า บันทึกสถานะการยินยอมลง Supabase Auth Metadata อัตโนมัติ
+                      </p>
+                    </div>
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-white px-2.5 py-1 rounded-lg border border-emerald-200 shrink-0">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>{isTermsAccepted ? "ยอมรับแล้ว" : "พร้อมทำงาน"}</span>
+                  </span>
+                </div>
               </div>
 
               {/* Ready for Next Phase Banner */}
               <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <div className="text-xs sm:text-sm font-bold text-slate-900">
-                    ระบบสิทธิ์พร้อม 100% สำหรับการเปิดร้านค้าจริง
+                    ระบบสิทธิ์และเงื่อนไข PDPA พร้อม 100% สำหรับการเปิดร้านค้าจริง
                   </div>
                   <div className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
                     ขั้นตอนต่อไป: สร้างระบบจัดการรายการบริการ เมนูตัดผม และคิดเงิน POS
