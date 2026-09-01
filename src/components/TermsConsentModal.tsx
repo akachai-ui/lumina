@@ -42,7 +42,9 @@ export default function TermsConsentModal({
 
     try {
       const now = new Date().toISOString();
-      const { error } = await supabase.auth.updateUser({
+
+      // 1. Update Auth User Metadata
+      const { data: authData, error: authError } = await supabase.auth.updateUser({
         data: {
           terms_accepted: true,
           terms_accepted_at: now,
@@ -50,8 +52,15 @@ export default function TermsConsentModal({
         },
       });
 
-      if (error) {
-        throw error;
+      if (authError) {
+        throw authError;
+      }
+
+      // 2. Also update terms_accepted_at in shops table for this owner if shop exists
+      if (authData.user) {
+        await (supabase.from("shops") as ReturnType<typeof supabase.from>)
+          .update({ terms_accepted_at: now } as never)
+          .eq("owner_id", authData.user.id);
       }
 
       onAccepted();
