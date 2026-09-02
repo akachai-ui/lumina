@@ -5,17 +5,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Scissors,
+  Users,
   Sparkles,
+  Receipt,
   LogOut,
   Loader2,
   Gift,
   ClipboardCheck,
   Store,
-  Clock,
-  ShieldCheck,
-  UserCheck,
-  Mail,
-  Calendar,
+  
+  ArrowRight,
+  
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/database";
@@ -186,7 +186,7 @@ export default function DashboardPage() {
         <div className="text-center space-y-3">
           <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mx-auto" />
           <p className="text-sm font-semibold text-slate-500">
-            กำลังโหลดข้อมูลร้านค้า...
+            กำลังโหลดระบบร้านค้า...
           </p>
         </div>
       </div>
@@ -205,14 +205,6 @@ export default function DashboardPage() {
 
   const daysRemaining = calculateDaysRemaining();
 
-  const formattedExpiryDate = shop?.plan_expires_at
-    ? new Date(shop.plan_expires_at).toLocaleDateString("th-TH", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
-    : "-";
-
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
       {/* First-Time Login Consent Modal */}
@@ -226,7 +218,7 @@ export default function DashboardPage() {
 
       {/* Top Header Bar */}
       <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5 sm:gap-3">
             <Link href="/" className="flex items-center gap-2">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/20 shrink-0">
@@ -239,7 +231,7 @@ export default function DashboardPage() {
 
             {shop && (
               <div className="flex items-center gap-1.5 sm:gap-2 border-l border-slate-200 pl-2.5 sm:pl-3">
-                <span className="text-xs sm:text-sm font-extrabold text-slate-800 truncate max-w-[140px] sm:max-w-[200px]">
+                <span className="text-xs sm:text-sm font-extrabold text-slate-800 truncate max-w-[120px] sm:max-w-[200px]">
                   {shop.name}
                 </span>
                 <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] sm:text-xs font-bold text-emerald-700 border border-emerald-200 flex items-center gap-1 shrink-0">
@@ -250,6 +242,7 @@ export default function DashboardPage() {
             )}
           </div>
 
+          {/* Top Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/checklist"
@@ -271,10 +264,10 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* Main Content: Clean & Focused Strictly on Shop & Package Info */}
-      <main className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex-1">
+      {/* Main Content: Pure Salon App UX */}
+      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1">
         {!shop ? (
-          /* Case 1: First-time user without shop -> Setup Shop Wizard */
+          /* First-time Setup Wizard */
           <div className="max-w-md mx-auto bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl mt-6">
             <div className="text-center mb-6">
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 mb-3">
@@ -344,147 +337,142 @@ export default function DashboardPage() {
             </form>
           </div>
         ) : (
-          /* Case 2: Clean, Focused Shop & Package Overview */
+          /* Real Salon App Workspace UX */
           <div className="space-y-6">
-            {/* 1. Main Shop & Package Hero Card */}
-            <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-violet-950 p-6 sm:p-8 rounded-3xl text-white shadow-xl relative overflow-hidden border border-indigo-900/50">
-              <div className="pointer-events-none absolute -right-16 -bottom-16 w-64 h-64 bg-indigo-500/15 rounded-full blur-3xl" />
-              <div className="pointer-events-none absolute top-0 right-1/4 w-40 h-40 bg-emerald-500/10 rounded-full blur-2xl" />
+            {/* 1. Sleek Shop & Plan Header Banner */}
+            <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-violet-950 p-6 sm:p-8 rounded-3xl text-white shadow-lg relative overflow-hidden border border-indigo-900/50">
+              <div className="pointer-events-none absolute -right-16 -bottom-16 w-56 h-56 bg-indigo-500/10 rounded-full blur-3xl" />
 
               <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                {/* Left: Shop Name */}
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-indigo-200 backdrop-blur-md">
-                      <Store className="w-3.5 h-3.5 text-indigo-300" />
-                      ร้านค้าของคุณ
+                    <span className="text-xs text-indigo-300 font-semibold flex items-center gap-1.5">
+                      <Store className="w-4 h-4 text-indigo-400" />
+                      <span>ร้านของคุณ:</span>
                     </span>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 px-3 py-1 text-xs font-bold">
-                      <Gift className="w-3.5 h-3.5 text-emerald-400" />
-                      แพ็กเกจ: ทดลองใช้ฟรี 2 เดือนเต็ม (All-Access)
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 px-2.5 py-0.5 text-xs font-bold">
+                      <Gift className="w-3 h-3 text-emerald-400" />
+                      <span>แพ็กเกจ: ทดลองใช้ฟรี 2 เดือน (เหลือ {daysRemaining} วัน)</span>
                     </span>
                   </div>
 
-                  <div className="space-y-1">
-                    <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold">
-                      ชื่อร้านค้าในระบบ
-                    </div>
-                    <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white flex items-center gap-2">
-                      <span>{shop.name}</span>
-                      <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 fill-amber-400 shrink-0" />
-                    </h1>
-                  </div>
+                  <h1 className="text-2xl sm:text-4xl font-black tracking-tight flex items-center gap-2">
+                    <span>{shop.name}</span>
+                    <Sparkles className="w-5 h-5 text-amber-400 fill-amber-400 shrink-0" />
+                  </h1>
 
-                  <p className="text-slate-300 text-xs sm:text-sm max-w-xl leading-relaxed">
-                    ยินดีต้อนรับคุณ <strong className="text-white">{user?.user_metadata?.full_name || user?.email}</strong> &bull; สิทธิ์การใช้งานปลดล็อกครบทุกฟังก์ชัน ไม่จำกัดจำนวนบิลและช่างในร้าน
+                  <p className="text-slate-300 text-xs sm:text-sm">
+                    ยินดีต้อนรับ {user?.user_metadata?.full_name || user?.email} &bull; สิทธิ์การใช้งานปลดล็อกครบทุกฟังก์ชัน
                   </p>
                 </div>
 
-                {/* Right: Remaining Days Box */}
-                <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-5 text-left min-w-[260px] shrink-0">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="text-xs text-indigo-200 font-semibold flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>ระยะเวลาทดลองใช้งาน</span>
-                    </span>
-                    <span className="text-xs font-black text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-400/30">
-                      เหลืออีก {daysRemaining} วัน
-                    </span>
-                  </div>
-
-                  <div className="text-lg sm:text-xl font-black text-white">
-                    หมดอายุ: {formattedExpiryDate}
-                  </div>
-
-                  <div className="text-[11px] text-slate-300 mt-1 flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>ไม่มีการตัดเงินอัตโนมัติ 100%</span>
-                  </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <Link
+                    href="/pos"
+                    className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white px-5 py-3.5 text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/25 transition-all active:scale-95"
+                  >
+                    <Receipt className="w-4 h-4" />
+                    <span>เข้าสู่หน้าจอ POS คิดเงิน</span>
+                  </Link>
                 </div>
               </div>
             </div>
 
-            {/* 2. Clear Details Grid (Shop & Plan & Account) */}
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs">
-              <h2 className="text-base font-extrabold text-slate-900 mb-4 flex items-center gap-2">
-                <Store className="w-5 h-5 text-indigo-600" />
-                <span>ข้อมูลร้านค้าและแพ็กเกจปัจจุบัน</span>
-              </h2>
+            {/* 2. Real Salon Working Modules (UX Workspace) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {/* Module 1: Services */}
+              <Link
+                href="/services"
+                className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-xs hover:border-indigo-500 hover:shadow-md transition-all group flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="h-12 w-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-xs">
+                      <Scissors className="h-6 w-6" />
+                    </div>
+                    <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
+                      จัดการเมนู
+                    </span>
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* 1. Shop Name */}
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1">
-                    <Store className="w-3.5 h-3.5 text-slate-400" />
-                    <span>ชื่อร้านค้า (Shop Name)</span>
-                  </div>
-                  <div className="text-base font-black text-slate-900">
-                    {shop.name}
-                  </div>
+                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                    รายการบริการ & ราคา
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                    เพิ่มและแก้ไขเมนูตัดผม สระ-ไดร์ ทำสี กำหนดราคา และระยะเวลาให้บริการของร้าน
+                  </p>
                 </div>
 
-                {/* 2. Current Plan */}
-                <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200/80">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 mb-1 flex items-center gap-1">
-                    <Gift className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>แพ็กเกจปัจจุบัน (Plan)</span>
+                <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-600">
+                  <span>เปิดระบบบริการ</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Link>
+
+              {/* Module 2: Staff */}
+              <Link
+                href="/staff"
+                className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-xs hover:border-purple-500 hover:shadow-md transition-all group flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="h-12 w-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-105 group-hover:bg-purple-600 group-hover:text-white transition-all shadow-xs">
+                      <Users className="h-6 w-6" />
+                    </div>
+                    <span className="text-[11px] font-bold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full">
+                      ช่าง & ค่าคอมฯ
+                    </span>
                   </div>
-                  <div className="text-base font-black text-emerald-800">
-                    ทดลองใช้ฟรี 2 เดือน (All-Access)
-                  </div>
+
+                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 group-hover:text-purple-600 transition-colors">
+                    รายชื่อช่าง & คอมมิชชัน
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                    จัดการรายชื่อช่างตัดผม สไตลิสต์ในร้าน กำหนดประเภทค่าจ้าง และตั้งค่า % ส่วนแบ่งค่าคอมฯ
+                  </p>
                 </div>
 
-                {/* 3. Days Remaining */}
-                <div className="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-200/80">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-indigo-700 mb-1 flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-indigo-600" />
-                    <span>ระยะเวลาคงเหลือ (Remaining)</span>
+                <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-purple-600">
+                  <span>เปิดระบบจัดการช่าง</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Link>
+
+              {/* Module 3: Fast POS */}
+              <Link
+                href="/pos"
+                className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-xs hover:border-emerald-500 hover:shadow-md transition-all group flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="h-12 w-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-xs">
+                      <Receipt className="h-6 w-6" />
+                    </div>
+                    <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
+                      คิดเงินหน้าร้าน
+                    </span>
                   </div>
-                  <div className="text-base font-black text-indigo-900">
-                    เหลืออีก {daysRemaining} วัน (ถึง {formattedExpiryDate})
-                  </div>
+
+                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 group-hover:text-emerald-600 transition-colors">
+                    หน้าจอคิดเงิน Fast POS
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                    แตะคิดเงินผ่าน iPad หรือมือถือ เลือกช่าง เลือกบริการ คำนวณค่าคอมฯ ทันทีใน 3 วินาที
+                  </p>
                 </div>
 
-                {/* 4. Owner Name */}
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1">
-                    <UserCheck className="w-3.5 h-3.5 text-slate-400" />
-                    <span>เจ้าของร้าน (Owner)</span>
-                  </div>
-                  <div className="text-sm font-bold text-slate-800">
-                    {user?.user_metadata?.full_name || "เจ้าของร้าน"}
-                  </div>
+                <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-emerald-600">
+                  <span>เปิดหน้าจอ POS</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
-
-                {/* 5. Email */}
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1">
-                    <Mail className="w-3.5 h-3.5 text-slate-400" />
-                    <span>อีเมลเข้าสู่ระบบ (Email)</span>
-                  </div>
-                  <div className="text-sm font-bold text-slate-800 truncate">
-                    {user?.email || "-"}
-                  </div>
-                </div>
-
-                {/* 6. Phone */}
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                    <span>เบอร์โทรศัพท์ร้าน</span>
-                  </div>
-                  <div className="text-sm font-bold text-slate-800">
-                    {shop.phone || "ยังไม่ได้ระบุ"}
-                  </div>
-                </div>
-              </div>
+              </Link>
             </div>
           </div>
         )}
       </main>
 
       {/* Clean Footer */}
-      <footer className="w-full max-w-5xl mx-auto px-4 py-4 text-center text-xs text-slate-400 border-t border-slate-200/60 mt-8">
+      <footer className="w-full max-w-7xl mx-auto px-4 py-4 text-center text-xs text-slate-400 border-t border-slate-200/60 mt-8">
         LUMINA &bull; แพลตฟอร์มบริหารร้านซาลอนและบาร์เบอร์ &bull; สิทธิ์ทดลองใช้งานฟรี 2 เดือนเต็ม
       </footer>
     </div>
