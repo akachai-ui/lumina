@@ -16,7 +16,6 @@ import {
   AlertCircle,
   Gift,
   Search,
-  Sparkles,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/database";
@@ -266,52 +265,6 @@ export default function StaffPage() {
     }
   };
 
-  // Quick Seed Sample Staff
-  const handleLoadSampleStaff = async () => {
-    if (!shop) return;
-    setSaving(true);
-    try {
-      const sampleList = [
-        {
-          shop_id: shop.id,
-          name: "ช่างแมน (Senior Barber)",
-          wage_type: "monthly",
-          wage_amount: 15000,
-          commission_percent: 50,
-          start_date: new Date().toISOString().split("T")[0],
-          note: "เชี่ยวชาญตัดผมชาย วินเทจ เฟด ดัดวอลลุ่ม",
-          is_active: true,
-        },
-        {
-          shop_id: shop.id,
-          name: "ช่างแอน (Hair Stylist)",
-          wage_type: "daily",
-          wage_amount: 500,
-          commission_percent: 45,
-          start_date: new Date().toISOString().split("T")[0],
-          note: "เชี่ยวชาญตัดผมหญิง สระ-ไดร์ ทำสีแฟชั่น ไฮไลต์",
-          is_active: true,
-        },
-      ];
-
-      const { data, error } = await (
-        supabase.from("staff") as ReturnType<typeof supabase.from>
-      )
-        .insert(sampleList as never)
-        .select();
-
-      if (error) throw error;
-
-      if (data) {
-        setStaffList((prev) => [...(data as Staff[]), ...prev]);
-      }
-    } catch (err) {
-      console.error("Error loading sample staff:", err);
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const filteredStaff = staffList.filter((s) =>
     s.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -416,22 +369,13 @@ export default function StaffPage() {
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-2">
+            <div className="pt-2">
               <button
                 onClick={openAddModal}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/20 active:scale-95 transition-all cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/20 active:scale-95 transition-all cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
-                <span>+ เพิ่มช่างคนแรก</span>
-              </button>
-
-              <button
-                onClick={handleLoadSampleStaff}
-                disabled={saving}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs sm:text-sm font-bold border border-purple-200/80 active:scale-95 transition-all cursor-pointer disabled:opacity-60"
-              >
-                <Sparkles className="w-4 h-4 text-purple-600" />
-                <span>โหลดช่างตัวอย่าง (2 คน)</span>
+                <span>+ เพิ่มช่างคนแรกของร้าน</span>
               </button>
             </div>
           </div>
