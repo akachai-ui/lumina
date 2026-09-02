@@ -14,6 +14,7 @@ import {
   Store,
   Users,
   ArrowRight,
+  Tag,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/database";
@@ -21,6 +22,7 @@ import TermsConsentModal from "@/components/TermsConsentModal";
 
 type Shop = Database["public"]["Tables"]["shops"]["Row"];
 type Staff = Database["public"]["Tables"]["staff"]["Row"];
+type Service = Database["public"]["Tables"]["services"]["Row"];
 type User = {
   id: string;
   email?: string;
@@ -45,6 +47,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [shop, setShop] = useState<Shop | null>(null);
   const [staffList, setStaffList] = useState<Staff[]>([]);
+  const [servicesList, setServicesList] = useState<Service[]>([]);
   const [shopName, setShopName] = useState("");
   const [phone, setPhone] = useState("");
   const [creatingShop, setCreatingShop] = useState(false);
@@ -109,6 +112,17 @@ export default function DashboardPage() {
 
           if (isMounted && staffData) {
             setStaffList(staffData);
+          }
+
+          // Fetch services of this shop
+          const { data: servicesData } = await supabase
+            .from("services")
+            .select("*")
+            .eq("shop_id", currentShop.id)
+            .order("created_at", { ascending: false });
+
+          if (isMounted && servicesData) {
+            setServicesList(servicesData);
           }
         }
       } catch (err) {
@@ -232,7 +246,7 @@ export default function DashboardPage() {
       {/* Top Header Bar - Optimized for Mobile, Tablet & Desktop */}
       <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
-          {/* Logo & Shop Info (Smart responsive hiding) */}
+          {/* Logo & Shop Info */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <Link href="/dashboard" className="flex items-center gap-2">
               <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/20 shrink-0">
@@ -243,7 +257,7 @@ export default function DashboardPage() {
               </span>
             </Link>
 
-            {/* Desktop / Tablet Shop Badge (Hidden on mobile to prevent navbar crowding) */}
+            {/* Desktop / Tablet Shop Badge */}
             {shop && (
               <div className="hidden sm:flex items-center gap-2 border-l border-slate-200 pl-3">
                 <span className="text-xs sm:text-sm font-extrabold text-slate-800 truncate max-w-[140px] md:max-w-[200px]">
@@ -258,20 +272,29 @@ export default function DashboardPage() {
           </div>
 
           {/* Top Actions: Touch-friendly & Clean */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Services Shortcut */}
+            <Link
+              href="/services"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 px-2.5 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs active:scale-95 whitespace-nowrap shrink-0"
+            >
+              <Scissors className="w-3.5 h-3.5 text-amber-600 rotate-[-45deg]" />
+              <span>บริการ</span>
+            </Link>
+
             {/* Staff Shortcut */}
             <Link
               href="/staff"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 px-2.5 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs active:scale-95"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 px-2.5 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs active:scale-95 whitespace-nowrap shrink-0"
             >
               <Users className="w-3.5 h-3.5 text-purple-600" />
-              <span>จัดการช่าง</span>
+              <span>ช่าง</span>
             </Link>
 
             {/* Checklist */}
             <Link
               href="/checklist"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 px-2 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs active:scale-95"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 px-2 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs active:scale-95 whitespace-nowrap shrink-0"
               title="ดูผลการทดสอบระบบ"
             >
               <ClipboardCheck className="w-3.5 h-3.5 text-emerald-600" />
@@ -282,7 +305,7 @@ export default function DashboardPage() {
             {/* Logout */}
             <button
               onClick={handleSignOut}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 p-2 sm:px-3 sm:py-1.5 rounded-xl transition-colors cursor-pointer active:scale-95"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 p-2 sm:px-3 sm:py-1.5 rounded-xl transition-colors cursor-pointer active:scale-95 shrink-0"
               title="ออกจากระบบ"
             >
               <LogOut className="w-3.5 h-3.5" />
@@ -393,11 +416,12 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* 2. Compact Staff Widget Card: Fits mobile, tablet portrait & landscape */}
-            <div>
+            {/* 2. Compact Module Widgets Grid: Staff & Services */}
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+              {/* Staff Widget Card */}
               <Link
                 href="/staff"
-                className="group inline-flex items-center justify-between gap-3 sm:gap-4 bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/90 shadow-2xs hover:border-purple-400 hover:shadow-md transition-all duration-150 active:scale-[0.98] w-full sm:w-auto sm:min-w-[340px]"
+                className="group inline-flex items-center justify-between gap-3 sm:gap-4 bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/90 shadow-2xs hover:border-purple-400 hover:shadow-md transition-all duration-150 active:scale-[0.98] w-full sm:w-auto sm:min-w-[320px]"
               >
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0 group-hover:scale-105 transition-transform">
@@ -435,6 +459,39 @@ export default function DashboardPage() {
                   )}
 
                   <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl bg-slate-50 group-hover:bg-purple-50 text-slate-400 group-hover:text-purple-600 flex items-center justify-center transition-colors">
+                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                </div>
+              </Link>
+
+              {/* Services Widget Card */}
+              <Link
+                href="/services"
+                className="group inline-flex items-center justify-between gap-3 sm:gap-4 bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/90 shadow-2xs hover:border-amber-400 hover:shadow-md transition-all duration-150 active:scale-[0.98] w-full sm:w-auto sm:min-w-[320px]"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-gradient-to-tr from-amber-500 to-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0 group-hover:scale-105 transition-transform">
+                    <Scissors className="h-5 w-5 rotate-[-45deg]" />
+                  </div>
+
+                  <div>
+                    <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                      เมนูบริการ
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-base sm:text-lg font-black text-slate-900 leading-none">
+                        {servicesList.length} รายการ
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 shrink-0">
+                        <Tag className="w-2.5 h-2.5 text-amber-600" />
+                        ราคามาตรฐาน
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pl-2 border-l border-slate-100 shrink-0">
+                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl bg-slate-50 group-hover:bg-amber-50 text-slate-400 group-hover:text-amber-600 flex items-center justify-center transition-colors">
                     <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </div>

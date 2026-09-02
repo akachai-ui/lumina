@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import {
   Users,
   Plus,
+  Scissors,
   ArrowLeft,
   Loader2,
   Trash2,
@@ -444,14 +445,25 @@ export default function StaffPage() {
             </div>
           )}
 
-          {/* Right: Add Staff Button */}
-          <button
-            onClick={openAddModal}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/25 active:scale-95 transition-all cursor-pointer whitespace-nowrap shrink-0"
-          >
-            <Plus className="w-4 h-4 shrink-0" />
-            <span>เพิ่มช่างใหม่</span>
-          </button>
+          {/* Right Actions */}
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href="/services"
+              className="inline-flex items-center gap-1 text-xs font-bold text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl transition-all shadow-2xs active:scale-95 whitespace-nowrap shrink-0"
+              title="จัดการเมนูบริการ"
+            >
+              <Scissors className="w-3.5 h-3.5 text-amber-600 rotate-[-45deg]" />
+              <span className="hidden xs:inline">บริการ</span>
+            </Link>
+
+            <button
+              onClick={openAddModal}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/25 active:scale-95 transition-all cursor-pointer whitespace-nowrap shrink-0"
+            >
+              <Plus className="w-4 h-4 shrink-0" />
+              <span>เพิ่มช่างใหม่</span>
+            </button>
+          </div>
         </div>
       </header>
 
