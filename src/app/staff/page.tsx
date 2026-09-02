@@ -15,7 +15,6 @@ import {
   Percent,
   Banknote,
   AlertCircle,
-  Gift,
   Search,
   Camera,
   Upload,
@@ -351,40 +350,35 @@ export default function StaffPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100/70 via-slate-50 to-slate-100/40 flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
-      {/* Top Navigation Bar - Responsive for Mobile & Tablet */}
+      {/* Top Navigation Bar - Ultra Clean, No Overflow on Mobile */}
       <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-700 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 px-2.5 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs active:scale-95"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>กลับแดชบอร์ด</span>
-            </Link>
+        <div className="max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
+          {/* Left: Back to Dashboard */}
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-700 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl transition-all shadow-2xs active:scale-95 whitespace-nowrap shrink-0"
+          >
+            <ArrowLeft className="w-4 h-4 shrink-0" />
+            <span>กลับแดชบอร์ด</span>
+          </Link>
 
-            {shop && (
-              <div className="hidden sm:flex items-center gap-2 border-l border-slate-200 pl-2.5 sm:pl-3">
-                <span className="text-xs sm:text-sm font-extrabold text-slate-800 truncate max-w-[120px] sm:max-w-[180px]">
-                  {shop.name}
-                </span>
-                <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] sm:text-xs font-bold text-emerald-700 border border-emerald-200 flex items-center gap-1 shrink-0">
-                  <Gift className="w-3 h-3 text-emerald-600" />
-                  <span>TRIAL 2 เดือน</span>
-                </span>
-              </div>
-            )}
-          </div>
+          {/* Center Shop Name (Desktop / Tablet only) */}
+          {shop && (
+            <div className="hidden md:flex items-center gap-2 text-xs font-bold text-slate-500">
+              <span className="text-slate-800 font-extrabold">{shop.name}</span>
+              <span>&bull;</span>
+              <span>ระบบจัดการช่าง</span>
+            </div>
+          )}
 
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={openAddModal}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/25 active:scale-95 transition-all cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>เพิ่มช่างใหม่</span>
-            </button>
-          </div>
+          {/* Right: Add Staff Button */}
+          <button
+            onClick={openAddModal}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/25 active:scale-95 transition-all cursor-pointer whitespace-nowrap shrink-0"
+          >
+            <Plus className="w-4 h-4 shrink-0" />
+            <span>เพิ่มช่างใหม่</span>
+          </button>
         </div>
       </header>
 
@@ -437,7 +431,7 @@ export default function StaffPage() {
           </div>
         </div>
 
-        {/* Staff Cards Grid - 1 col on mobile portrait, 2 cols on landscape/tablet portrait, 3 cols on desktop/tablet landscape */}
+        {/* Staff Cards Grid - Responsive across devices */}
         {filteredStaff.length === 0 ? (
           <div className="bg-white rounded-3xl p-8 sm:p-14 text-center border border-slate-200/80 shadow-xs max-w-lg mx-auto space-y-4">
             <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-3xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto shadow-inner">
@@ -803,7 +797,7 @@ export default function StaffPage() {
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-base sm:text-sm bg-white focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
+                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-base sm:text-sm bg-white focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
                   />
                 </div>
               </div>
@@ -818,7 +812,7 @@ export default function StaffPage() {
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="เช่น ถนัดตัดผมชายสไตล์วินเทจ, ทำสีแฟชั่น..."
-                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-base sm:text-sm focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-base sm:text-sm focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
                 />
               </div>
 
