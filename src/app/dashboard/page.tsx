@@ -14,7 +14,6 @@ import {
   Store,
   Users,
   ArrowRight,
-  UserCheck,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/database";
@@ -287,7 +286,7 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1 space-y-6">
+      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1 space-y-5">
         {!shop ? (
           /* First-time Setup Wizard */
           <div className="max-w-md mx-auto bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl mt-6">
@@ -359,9 +358,9 @@ export default function DashboardPage() {
             </form>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-5">
             {/* 1. Top Banner: Shop Name & Package */}
-            <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-violet-950 p-6 sm:p-8 rounded-3xl text-white shadow-lg relative overflow-hidden border border-indigo-900/50">
+            <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-violet-950 p-6 sm:p-7 rounded-3xl text-white shadow-lg relative overflow-hidden border border-indigo-900/50">
               <div className="pointer-events-none absolute -right-16 -bottom-16 w-56 h-56 bg-indigo-500/10 rounded-full blur-3xl" />
 
               <div className="relative z-10 space-y-2">
@@ -376,7 +375,7 @@ export default function DashboardPage() {
                   </span>
                 </div>
 
-                <h1 className="text-2xl sm:text-4xl font-black tracking-tight flex items-center gap-2">
+                <h1 className="text-2xl sm:text-3xl font-black tracking-tight flex items-center gap-2">
                   <span>{shop.name}</span>
                   <Sparkles className="w-5 h-5 text-amber-400 fill-amber-400 shrink-0" />
                 </h1>
@@ -387,82 +386,51 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* 2. Staff Card (Clickable to view Staff List) */}
-            <div className="max-w-md">
+            {/* 2. Compact Staff Widget Card (Click to View Staff List) */}
+            <div>
               <Link
                 href="/staff"
-                className="group block bg-white rounded-3xl p-6 border border-slate-200/90 shadow-xs hover:border-purple-500 hover:shadow-xl transition-all duration-200 active:scale-[0.99] relative overflow-hidden"
+                className="group inline-flex items-center justify-between gap-4 bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs hover:border-purple-400 hover:shadow-md transition-all duration-150 active:scale-[0.98] w-full sm:w-auto sm:min-w-[340px]"
               >
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-purple-500/25 group-hover:scale-105 transition-transform">
-                    <Users className="h-7 w-7" />
+                <div className="flex items-center gap-3">
+                  <div className="h-11 w-11 rounded-xl bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0 group-hover:scale-105 transition-transform">
+                    <Users className="h-5 w-5" />
                   </div>
 
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-purple-50 text-purple-700 border border-purple-200/80 group-hover:bg-purple-100 transition-colors">
-                    <UserCheck className="w-3.5 h-3.5 text-purple-600" />
-                    <span>พร้อมทำงาน {activeStaffCount} คน</span>
-                  </span>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    ทีมช่างของร้าน
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-                      {staffList.length}
-                    </span>
-                    <span className="text-base font-extrabold text-slate-500">
-                      คน
-                    </span>
+                  <div>
+                    <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                      ช่างในร้าน
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-lg font-black text-slate-900 leading-none">
+                        {staffList.length} คน
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        พร้อม {activeStaffCount}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Stylists Avatar Preview Row */}
-                {staffList.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <div className="flex items-center -space-x-2">
-                      {staffList.slice(0, 4).map((s) => (
-                        <div
-                          key={s.id}
-                          className="relative h-9 w-9 rounded-full overflow-hidden border-2 border-white shadow-xs"
-                          title={s.name}
-                        >
-                          {s.image_url ? (
-                            <Image
-                              src={s.image_url}
-                              alt={s.name}
-                              fill
-                              unoptimized
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="h-full w-full bg-gradient-to-tr from-purple-500 to-indigo-600 text-white text-xs font-bold flex items-center justify-center">
-                              {s.name.charAt(0)}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                      {staffList.length > 4 && (
-                        <div className="h-9 w-9 rounded-full bg-slate-100 border-2 border-white text-slate-600 text-xs font-bold flex items-center justify-center shadow-xs">
-                          +{staffList.length - 4}
-                        </div>
-                      )}
+                {/* Right: Stylist Avatar Preview + Arrow */}
+                <div className="flex items-center gap-2 pl-2 border-l border-slate-100 shrink-0">
+                  {staffList.length > 0 && staffList[0]?.image_url && (
+                    <div className="relative h-8 w-8 rounded-full overflow-hidden border border-slate-200 shadow-2xs shrink-0">
+                      <Image
+                        src={staffList[0].image_url}
+                        alt={staffList[0].name}
+                        fill
+                        unoptimized
+                        className="object-cover"
+                      />
                     </div>
+                  )}
 
-                    <div className="inline-flex items-center gap-1 text-xs font-extrabold text-purple-600 group-hover:text-purple-700">
-                      <span>ดูรายชื่อช่าง</span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </div>
+                  <div className="h-8 w-8 rounded-xl bg-slate-50 group-hover:bg-purple-50 text-slate-400 group-hover:text-purple-600 flex items-center justify-center transition-colors">
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                   </div>
-                )}
-
-                {staffList.length === 0 && (
-                  <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-600">
-                    <span>คลิกเพื่อเพิ่มช่างคนแรก</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                )}
+                </div>
               </Link>
             </div>
           </div>
