@@ -5,23 +5,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Scissors,
+  Users,
   Sparkles,
+  TrendingUp,
+  Receipt,
   LogOut,
   Loader2,
-  Gift,
-  CheckCircle2,
-  Heart,
-  Award,
-  Mail,
-  UserCheck,
   Calendar,
-  KeyRound,
-  Store,
+  Gift,
   ArrowRight,
-  RefreshCw,
-  Check,
-  BadgeCheck,
-  FileCheck2,
+  ClipboardCheck,
+  PlusCircle,
+  Store,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/database";
@@ -51,6 +46,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [shop, setShop] = useState<Shop | null>(null);
+  const [servicesCount, setServicesCount] = useState(0);
+  const [staffCount, setStaffCount] = useState(0);
   const [shopName, setShopName] = useState("");
   const [phone, setPhone] = useState("");
   const [creatingShop, setCreatingShop] = useState(false);
@@ -61,7 +58,7 @@ export default function DashboardPage() {
   useEffect(() => {
     let isMounted = true;
 
-    async function fetchSessionAndShop() {
+    async function fetchDashboardData() {
       try {
         const {
           data: { user: currentUser },
@@ -103,7 +100,25 @@ export default function DashboardPage() {
         if (!shopsData || shopsData.length === 0) {
           setShop(null);
         } else {
-          setShop(shopsData[0] as Shop);
+          const currentShop = shopsData[0] as Shop;
+          setShop(currentShop);
+
+          // Fetch services count
+          const { count: sCount } = await supabase
+            .from("services")
+            .select("*", { count: "exact", head: true })
+            .eq("shop_id", currentShop.id);
+
+          // Fetch staff count
+          const { count: stCount } = await supabase
+            .from("staff")
+            .select("*", { count: "exact", head: true })
+            .eq("shop_id", currentShop.id);
+
+          if (isMounted) {
+            setServicesCount(sCount || 0);
+            setStaffCount(stCount || 0);
+          }
         }
       } catch (err) {
         console.error("Error loading dashboard data:", err);
@@ -114,7 +129,7 @@ export default function DashboardPage() {
       }
     }
 
-    fetchSessionAndShop();
+    fetchDashboardData();
 
     return () => {
       isMounted = false;
@@ -183,7 +198,6 @@ export default function DashboardPage() {
 
   const handleTermsAccepted = () => {
     setShowTermsModal(false);
-    // Refresh user state to reflect accepted terms
     setRefreshKey((prev) => prev + 1);
   };
 
@@ -193,28 +207,12 @@ export default function DashboardPage() {
         <div className="text-center space-y-3">
           <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mx-auto" />
           <p className="text-sm font-semibold text-slate-500">
-            กำลังตรวจสอบสิทธิ์การเข้าสู่ระบบ...
+            กำลังโหลดแดชบอร์ดร้านค้า...
           </p>
         </div>
       </div>
     );
   }
-
-  const providerName =
-    user?.app_metadata?.provider === "google"
-      ? "Google Account (OAuth)"
-      : user?.app_metadata?.provider === "facebook"
-      ? "Facebook Account (OAuth)"
-      : "Email & Password";
-
-  const formattedSignInDate = user?.last_sign_in_at
-    ? new Date(user.last_sign_in_at).toLocaleString("th-TH", {
-        dateStyle: "medium",
-        timeStyle: "short",
-      })
-    : "ณ ตอนนี้";
-
-  const isTermsAccepted = user?.user_metadata?.terms_accepted === true;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
@@ -229,7 +227,7 @@ export default function DashboardPage() {
 
       {/* Top Header Bar */}
       <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/20">
@@ -239,45 +237,60 @@ export default function DashboardPage() {
                 LUMINA
               </span>
             </Link>
-            <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200/70">
-              <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />
-              Auth & Terms Verified
-            </span>
+
+            {shop && (
+              <div className="hidden sm:flex items-center gap-2 border-l border-slate-200 pl-3">
+                <span className="text-sm font-bold text-slate-800">{shop.name}</span>
+                <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                  <Gift className="w-3 h-3 text-emerald-600" />
+                  {shop.plan_status === "trial" ? "TRIAL 2 เดือน" : shop.plan_tier?.toUpperCase()}
+                </span>
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            {/* Link to Dedicated Checklist Page */}
+            <Link
+              href="/checklist"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 px-3 py-1.5 rounded-xl transition-all shadow-2xs"
+            >
+              <ClipboardCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="hidden sm:inline">ผลการทดสอบ</span>
+              <span>(Checklist)</span>
+            </Link>
+
             <button
               onClick={handleSignOut}
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-rose-700 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 px-3.5 py-2 rounded-xl transition-all active:scale-95 cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
             >
-              <LogOut className="w-4 h-4" />
-              <span>ออกจากระบบ (Sign Out)</span>
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">ออกจากระบบ</span>
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex-1">
+      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1">
         {!shop ? (
-          /* Case 1: First-time user, must create a shop name to complete onboarding */
+          /* Case 1: First-time user without shop -> Setup Shop Wizard */
           <div className="max-w-md mx-auto bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl mt-6">
             <div className="text-center mb-6">
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 mb-3">
-                <Sparkles className="w-6 h-6" />
+                <Store className="w-6 h-6" />
               </div>
               <h2 className="text-xl font-extrabold text-slate-900">
-                เข้าสู่ระบบสำเร็จ!
+                ยินดีต้อนรับสู่ LUMINA!
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                ตั้งชื่อร้านค้าเพื่อเสร็จสิ้นขั้นตอนการทดสอบล็อกอิน
+                เริ่มต้นตั้งชื่อร้านของคุณเพื่อเริ่มทดลองใช้ฟรี 2 เดือนเต็ม
               </p>
             </div>
 
-            {/* Trial Banner */}
             <div className="mb-5 rounded-2xl bg-emerald-50 border border-emerald-200 p-3.5 text-xs text-emerald-800 flex items-center gap-2">
               <Gift className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>รับสิทธิ์ทดลองใช้ฟรี 2 เดือนเต็ม (60 วัน) อัตโนมัติ</span>
+              <span>สิทธิ์ทดลองใช้ฟรี 2 เดือนเต็ม (ปลดล็อกครบทุกฟังก์ชัน)</span>
             </div>
 
             {errorMessage && (
@@ -289,21 +302,21 @@ export default function DashboardPage() {
             <form onSubmit={handleCreateShop} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  ชื่อร้านค้าทดสอบ (Shop Name) *
+                  ชื่อร้านซาลอน / บาร์เบอร์ (Shop Name) *
                 </label>
                 <input
                   type="text"
                   required
                   value={shopName}
                   onChange={(e) => setShopName(e.target.value)}
-                  placeholder="เช่น ร้านทดสอบ 1 (Test Salon)"
+                  placeholder="เช่น The Classic Salon & Barber"
                   className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-base sm:text-sm focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  เบอร์โทรศัพท์ (ไม่บังคับ)
+                  เบอร์โทรศัพท์ร้าน
                 </label>
                 <input
                   type="tel"
@@ -322,293 +335,217 @@ export default function DashboardPage() {
                 {creatingShop ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>กำลังบันทึกร้านค้า...</span>
+                    <span>กำลังสร้างร้านค้า...</span>
                   </>
                 ) : (
-                  <span>ยืนยันชื่อร้านและเสร็จสิ้นการทดสอบ</span>
+                  <span>เปิดร้านและเริ่มทดลองใช้ฟรี 2 เดือน</span>
                 )}
               </button>
             </form>
           </div>
         ) : (
-          /* Case 2: Clean, Verified Login Test Report for Tester */
-          <div className="space-y-6">
-            {/* Top Thank-You Banner */}
-            <div className="rounded-3xl bg-gradient-to-r from-emerald-50 via-teal-50/70 to-indigo-50/70 border border-emerald-200 p-6 sm:p-8 shadow-xs relative overflow-hidden">
-              <div className="pointer-events-none absolute -right-12 -bottom-12 w-48 h-48 bg-emerald-300/20 rounded-full blur-2xl" />
+          /* Case 2: Real Salon Owner Dashboard */
+          <div className="space-y-6 sm:space-y-8">
+            {/* Greeting Hero Banner */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 bg-gradient-to-r from-indigo-900 via-slate-900 to-violet-950 p-6 sm:p-8 rounded-3xl text-white shadow-lg relative overflow-hidden">
+              <div className="pointer-events-none absolute -right-16 -bottom-16 w-56 h-56 bg-indigo-500/10 rounded-full blur-3xl" />
 
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-                <div className="flex items-start gap-4">
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/25">
-                    <CheckCircle2 className="h-8 w-8" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-0.5 rounded-full border border-emerald-300">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        เข้าสู่ระบบสำเร็จ 100%
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
-                        <Award className="w-3.5 h-3.5 text-indigo-500" />
-                        Verified Tester
-                      </span>
-                      {isTermsAccepted && (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                          <FileCheck2 className="w-3.5 h-3.5 text-emerald-600" />
-                          PDPA Accepted
-                        </span>
-                      )}
-                    </div>
-
-                    <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
-                      <span>ขอขอบคุณ Tester ที่ร่วมทดสอบระบบ!</span>
-                      <Heart className="w-5 h-5 text-rose-500 fill-rose-500 animate-pulse" />
-                    </h1>
-
-                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl">
-                      การทดสอบระบบสิทธิ์ ยืนยันตัวตน และการยอมรับเงื่อนไข PDPA ของ Lumina ประสบความสำเร็จเรียบร้อย ข้อมูลผู้ใช้ของคุณถูกตรวจสอบและเชื่อมต่อกับระบบ Supabase Cloud อย่างปลอดภัยแล้วครับ
-                    </p>
-                  </div>
+              <div className="relative z-10 space-y-1.5">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-indigo-200 backdrop-blur-md mb-1">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
+                  ระบบบริหารร้านซาลอน & บาร์เบอร์ออนไลน์
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0">
-                  <button
-                    onClick={() => setRefreshKey((prev) => prev + 1)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 px-3.5 py-2.5 rounded-xl shadow-2xs transition-all active:scale-95 cursor-pointer"
-                    title="รีเฟรชข้อมูล"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
-                    <span>รีเฟรชข้อมูล</span>
-                  </button>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+                    {shop.name}
+                  </h1>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 px-3 py-0.5 text-xs font-bold">
+                    <Gift className="w-3.5 h-3.5 text-emerald-400" />
+                    {shop.plan_status === "trial" ? "ทดลองใช้ฟรี 2 เดือน (60 วัน)" : shop.plan_tier?.toUpperCase()}
+                  </span>
                 </div>
+
+                <p className="text-slate-300 text-xs sm:text-sm max-w-xl leading-relaxed">
+                  ยินดีต้อนรับ {user?.user_metadata?.full_name || user?.email} &bull; สิทธิ์การใช้งานปลดล็อกครบทุกฟังก์ชัน ไม่จำกัดจำนวนบิลและช่างในร้าน
+                </p>
+              </div>
+
+              <div className="relative z-10 flex items-center gap-3 shrink-0">
+                <Link
+                  href="/pos"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-3 text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/25 transition-all active:scale-95"
+                >
+                  <Receipt className="w-4 h-4" />
+                  <span>เข้าสู่หน้าจอ POS คิดเงิน</span>
+                </Link>
               </div>
             </div>
 
-            {/* Authentication & Terms Verification Details Card */}
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs">
-              <div className="flex items-center justify-between pb-4 mb-6 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <UserCheck className="w-5 h-5 text-indigo-600" />
-                  <h2 className="text-base sm:text-lg font-extrabold text-slate-900">
-                    ข้อมูลผลการทดสอบการเข้าสู่ระบบและเงื่อนไข (Auth & Terms Details)
-                  </h2>
-                </div>
-                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
-                  Session Active
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {/* 1. Tester Name */}
-                <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-                    ชื่อผู้ทดสอบ (Tester Name)
-                  </div>
-                  <div className="text-sm sm:text-base font-black text-slate-900">
-                    {user?.user_metadata?.full_name || "เจ้าของร้าน (Owner)"}
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {/* Stat 1: Today Sales */}
+              <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    ยอดขายวันนี้
+                  </span>
+                  <div className="h-8 w-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <TrendingUp className="h-4 w-4" />
                   </div>
                 </div>
-
-                {/* 2. Email */}
-                <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1">
-                    <Mail className="w-3 h-3 text-slate-400" />
-                    <span>อีเมลที่ใช้ล็อกอิน (Email)</span>
-                  </div>
-                  <div className="text-sm sm:text-base font-black text-slate-900 truncate">
-                    {user?.email || "-"}
-                  </div>
+                <div className="text-2xl sm:text-3xl font-black text-slate-900">
+                  ฿0
                 </div>
-
-                {/* 3. Provider */}
-                <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-                    ช่องทางเข้าสู่ระบบ (Provider)
-                  </div>
-                  <div className="text-sm sm:text-base font-black text-indigo-700">
-                    {providerName}
-                  </div>
-                </div>
-
-                {/* 4. Shop Name */}
-                <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1">
-                    <Store className="w-3 h-3 text-slate-400" />
-                    <span>ชื่อร้านค้าในระบบ (Shop Name)</span>
-                  </div>
-                  <div className="text-sm sm:text-base font-black text-slate-900">
-                    {shop?.name || "-"}
-                  </div>
-                </div>
-
-                {/* 5. Plan Status */}
-                <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1">
-                    <Gift className="w-3 h-3 text-emerald-600" />
-                    <span>สถานะสิทธิ์การใช้งาน (Plan Tier)</span>
-                  </div>
-                  <div className="text-sm sm:text-base font-black text-emerald-700">
-                    ทดลองใช้ฟรี 2 เดือน (All-Access 60 วัน)
-                  </div>
-                </div>
-
-                {/* 6. Terms Consent Status */}
-                <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1">
-                    <FileCheck2 className="w-3 h-3 text-emerald-600" />
-                    <span>สถานะการยอมรับเงื่อนไข (PDPA)</span>
-                  </div>
-                  <div className="text-sm sm:text-base font-black text-emerald-700 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>{isTermsAccepted ? "ยอมรับเงื่อนไขแล้ว (v1.0)" : "รอยืนยัน"}</span>
-                  </div>
-                </div>
-
-                {/* 7. Sign in time */}
-                <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80 col-span-1 sm:col-span-2 lg:col-span-3">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1">
-                    <Calendar className="w-3 h-3 text-slate-400" />
-                    <span>เวลาที่ล็อกอินล่าสุด (Sign-in Time)</span>
-                  </div>
-                  <div className="text-xs sm:text-sm font-bold text-slate-800">
-                    {formattedSignInDate}
-                  </div>
+                <div className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                  <span>⏱ อัปเดตเรียลไทม์</span>
                 </div>
               </div>
 
-              {/* Supabase User ID info */}
-              <div className="mt-5 p-3.5 rounded-2xl bg-slate-100/70 border border-slate-200 text-xs text-slate-500 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <KeyRound className="w-4 h-4 text-slate-400 shrink-0" />
-                  <span>
-                    <strong>Supabase User ID:</strong>{" "}
-                    <code className="text-indigo-600 font-mono text-[11px]">{user?.id}</code>
+              {/* Stat 2: Staff */}
+              <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    ช่างในร้าน
                   </span>
+                  <div className="h-8 w-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                    <Users className="h-4 w-4" />
+                  </div>
                 </div>
-                <span className="text-[11px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                  ✓ Verified in Supabase
-                </span>
-              </div>
-            </div>
-
-            {/* Checklist: All Auth & Terms Test Routes Completed & Passed */}
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <BadgeCheck className="w-5 h-5 text-emerald-600" />
-                  <h3 className="text-base font-extrabold text-slate-900">
-                    ผลการทดสอบระบบสิทธิ์และเงื่อนไขทั้งหมด (Auth & Terms Checklist):
-                  </h3>
+                <div className="text-2xl sm:text-3xl font-black text-slate-900">
+                  {staffCount} คน
                 </div>
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
-                  ผ่านการทดสอบครบ 100%
-                </span>
+                <Link
+                  href="/staff"
+                  className="text-xs font-bold text-indigo-600 hover:text-indigo-700 mt-1 inline-flex items-center gap-1"
+                >
+                  <span>จัดการช่าง & ค่าคอมฯ</span>
+                  <span>&rarr;</span>
+                </Link>
               </div>
 
-              <div className="space-y-3">
-                {/* Item 1: Login Flow */}
-                <div className="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/40 flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div className="h-7 w-7 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
-                      <Check className="w-4 h-4 stroke-[3]" />
-                    </div>
-                    <div>
-                      <div className="text-xs sm:text-sm font-bold text-slate-900">
-                        1. ระบบเข้าสู่ระบบ (Login Flow)
-                      </div>
-                      <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5">
-                        รองรับ Google OAuth, Facebook OAuth, และ Email & Password ล็อกอินได้สมบูรณ์บนมือถือและคอมพิวเตอร์
-                      </p>
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-white px-2.5 py-1 rounded-lg border border-emerald-200 shrink-0">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>ผ่านการทดสอบแล้ว</span>
+              {/* Stat 3: Services */}
+              <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    รายการบริการ
                   </span>
-                </div>
-
-                {/* Item 2: Registration Flow */}
-                <div className="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/40 flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div className="h-7 w-7 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
-                      <Check className="w-4 h-4 stroke-[3]" />
-                    </div>
-                    <div>
-                      <div className="text-xs sm:text-sm font-bold text-slate-900">
-                        2. ระบบลงทะเบียนร้านค้าใหม่ (Registration Flow)
-                      </div>
-                      <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5">
-                        สมัครเปิดร้านค้าใหม่สำเร็จ ข้อมูลร้านบันทึกลงตาราง `shops` พร้อมมอบสิทธิ์ทดลองใช้ฟรี 2 เดือนเต็ม (All-Access 60 วัน)
-                      </p>
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-white px-2.5 py-1 rounded-lg border border-emerald-200 shrink-0">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>ผ่านการทดสอบแล้ว</span>
-                  </span>
-                </div>
-
-                {/* Item 3: Password Recovery Flow */}
-                <div className="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/40 flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div className="h-7 w-7 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
-                      <Check className="w-4 h-4 stroke-[3]" />
-                    </div>
-                    <div>
-                      <div className="text-xs sm:text-sm font-bold text-slate-900">
-                        3. ระบบลืมรหัสผ่าน & รีเซ็ตรหัสผ่าน (Password Recovery Flow)
-                      </div>
-                      <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5">
-                        ส่งลิงก์ยืนยันความปลอดภัยไปยังกล่องจดหมายจริง ตั้งรหัสผ่านใหม่สำเร็จ พร้อมระบบป้องกัน Single-Use Token
-                      </p>
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-white px-2.5 py-1 rounded-lg border border-emerald-200 shrink-0">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>ผ่านการทดสอบแล้ว</span>
-                  </span>
-                </div>
-
-                {/* Item 4: Terms & Privacy Consent Modal */}
-                <div className="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/40 flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div className="h-7 w-7 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
-                      <Check className="w-4 h-4 stroke-[3]" />
-                    </div>
-                    <div>
-                      <div className="text-xs sm:text-sm font-bold text-slate-900">
-                        4. ระบบป๊อปอัปยอมรับเงื่อนไขการใช้งาน & PDPA (First-Time Consent)
-                      </div>
-                      <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5">
-                        แสดงเงื่อนไขทดลองใช้ 2 เดือน และนโยบายความลับข้อมูลร้านค้า บันทึกสถานะการยินยอมลง Supabase Auth Metadata อัตโนมัติ
-                      </p>
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-white px-2.5 py-1 rounded-lg border border-emerald-200 shrink-0">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>ผ่านการทดสอบแล้ว</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* Ready for Next Phase Banner */}
-              <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <div className="text-xs sm:text-sm font-bold text-slate-900">
-                    ระบบสิทธิ์และเงื่อนไข PDPA พร้อม 100% สำหรับการเปิดร้านค้าจริง
-                  </div>
-                  <div className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-                    ขั้นตอนต่อไป: สร้างระบบจัดการรายการบริการ เมนูตัดผม และคิดเงิน POS
+                  <div className="h-8 w-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <Scissors className="h-4 w-4" />
                   </div>
                 </div>
-
+                <div className="text-2xl sm:text-3xl font-black text-slate-900">
+                  {servicesCount} เมนู
+                </div>
                 <Link
                   href="/services"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-indigo-600/20 active:scale-95 transition-all"
+                  className="text-xs font-bold text-emerald-600 hover:text-emerald-700 mt-1 inline-flex items-center gap-1"
                 >
-                  <span>เริ่มสร้างระบบบริการ (/services)</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <span>จัดการบริการ & ราคา</span>
+                  <span>&rarr;</span>
+                </Link>
+              </div>
+
+              {/* Stat 4: Appointments */}
+              <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    นัดหมายวันนี้
+                  </span>
+                  <div className="h-8 w-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                    <Calendar className="h-4 w-4" />
+                  </div>
+                </div>
+                <div className="text-2xl sm:text-3xl font-black text-slate-900">
+                  0 คิว
+                </div>
+                <div className="text-xs text-slate-400 mt-1">
+                  ไม่มีคิวที่รอดำเนินการ
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions Guide for Launching Salon */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900">
+                    ขั้นตอนการเริ่มต้นใช้งานร้านค้าของคุณ
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    ทำตาม 3 ขั้นตอนนี้เพื่อเริ่มเปิดบิลขายและคำนวณค่าคอมฯ ช่างได้ทันที
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Step 1: Services */}
+                <Link
+                  href="/services"
+                  className="p-5 rounded-2xl border-2 border-indigo-200/70 bg-gradient-to-b from-indigo-50/40 to-white hover:border-indigo-600 transition-all group relative overflow-hidden"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 text-white text-xs font-black shadow-xs">
+                      1
+                    </span>
+                    <PlusCircle className="w-5 h-5 text-indigo-500 group-hover:scale-110 transition-transform" />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                    เพิ่มรายการบริการและราคา
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                    เพิ่มเมนูตัดผม สระ-ไดร์ ทำสี กำหนดราคา หรือโหลดเมนูตัวอย่างมาตรฐาน
+                  </p>
+                  <div className="mt-3 text-xs font-bold text-indigo-600 flex items-center gap-1">
+                    <span>จัดการบริการ</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+
+                {/* Step 2: Staff */}
+                <Link
+                  href="/staff"
+                  className="p-5 rounded-2xl border border-slate-200 hover:border-purple-600 hover:bg-purple-50/20 transition-all group relative overflow-hidden"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-100 text-purple-700 text-xs font-black">
+                      2
+                    </span>
+                    <Users className="w-5 h-5 text-purple-500 group-hover:scale-110 transition-transform" />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-900 group-hover:text-purple-600 transition-colors">
+                    เพิ่มช่าง & ตั้งค่าคอมมิชชัน
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                    เพิ่มรายชื่อช่างในร้าน กำหนดค่าจ้าง และตั้งค่า % ส่วนแบ่งค่าคอมฯ
+                  </p>
+                  <div className="mt-3 text-xs font-bold text-purple-600 flex items-center gap-1">
+                    <span>จัดการช่าง</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+
+                {/* Step 3: POS */}
+                <Link
+                  href="/pos"
+                  className="p-5 rounded-2xl border border-slate-200 hover:border-emerald-600 hover:bg-emerald-50/20 transition-all group relative overflow-hidden"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 text-xs font-black">
+                      3
+                    </span>
+                    <Receipt className="w-5 h-5 text-emerald-500 group-hover:scale-110 transition-transform" />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">
+                    เริ่มเปิดบิล Fast POS
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                    แตะคิดเงินผ่าน iPad หรือมือถือ คำนวณรายได้และค่าคอมฯ ใน 3 วินาที
+                  </p>
+                  <div className="mt-3 text-xs font-bold text-emerald-600 flex items-center gap-1">
+                    <span>เข้าสู่หน้าคิดเงิน</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </Link>
               </div>
             </div>
@@ -617,8 +554,8 @@ export default function DashboardPage() {
       </main>
 
       {/* Clean Footer */}
-      <footer className="w-full max-w-5xl mx-auto px-4 py-4 text-center text-xs text-slate-400 border-t border-slate-200/60 mt-8">
-        LUMINA &bull; Salon & Barber Management Platform &bull; Authentication Phase 100% Passed & Verified
+      <footer className="w-full max-w-7xl mx-auto px-4 py-4 text-center text-xs text-slate-400 border-t border-slate-200/60 mt-8">
+        LUMINA &bull; แพลตฟอร์มบริหารร้านซาลอนและบาร์เบอร์ &bull; สิทธิ์ทดลองใช้งานฟรี 2 เดือนเต็ม
       </footer>
     </div>
   );
