@@ -17,6 +17,8 @@ import {
   ClipboardCheck,
   PlusCircle,
   Store,
+  Clock,
+  ShieldCheck,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/database";
@@ -214,6 +216,26 @@ export default function DashboardPage() {
     );
   }
 
+  // Calculate Remaining Trial Days
+  const calculateDaysRemaining = () => {
+    if (!shop?.plan_expires_at) return 60;
+    const expires = new Date(shop.plan_expires_at);
+    const now = new Date();
+    const diffTime = expires.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
+  const daysRemaining = calculateDaysRemaining();
+
+  const formattedExpiryDate = shop?.plan_expires_at
+    ? new Date(shop.plan_expires_at).toLocaleDateString("th-TH", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "-";
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
       {/* First-Time Login Consent Modal */}
@@ -225,44 +247,47 @@ export default function DashboardPage() {
         onDeclined={handleSignOut}
       />
 
-      {/* Top Header Bar */}
+      {/* Top Header Bar (Responsive for Mobile & Desktop) */}
       <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/20">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/20 shrink-0">
                 <Scissors className="h-5 w-5 rotate-[-45deg]" />
               </div>
-              <span className="text-xl font-black tracking-tight text-slate-900">
+              <span className="text-lg sm:text-xl font-black tracking-tight text-slate-900">
                 LUMINA
               </span>
             </Link>
 
             {shop && (
-              <div className="hidden sm:flex items-center gap-2 border-l border-slate-200 pl-3">
-                <span className="text-sm font-bold text-slate-800">{shop.name}</span>
-                <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200 flex items-center gap-1">
+              <div className="flex items-center gap-1.5 sm:gap-2 border-l border-slate-200 pl-2.5 sm:pl-3">
+                <span className="text-xs sm:text-sm font-extrabold text-slate-800 truncate max-w-[120px] sm:max-w-[180px]">
+                  {shop.name}
+                </span>
+                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] sm:text-xs font-bold text-emerald-700 border border-emerald-200 flex items-center gap-1 shrink-0">
                   <Gift className="w-3 h-3 text-emerald-600" />
-                  {shop.plan_status === "trial" ? "TRIAL 2 เดือน" : shop.plan_tier?.toUpperCase()}
+                  <span className="hidden xs:inline">TRIAL</span>
+                  <span>2 เดือน</span>
                 </span>
               </div>
             )}
           </div>
 
-          <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Link to Dedicated Checklist Page */}
             <Link
               href="/checklist"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 px-3 py-1.5 rounded-xl transition-all shadow-2xs"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 px-2.5 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs"
             >
               <ClipboardCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="hidden sm:inline">ผลการทดสอบ</span>
+              <span className="hidden md:inline">ผลการทดสอบ</span>
               <span>(Checklist)</span>
             </Link>
 
             <button
               onClick={handleSignOut}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 px-2.5 sm:px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">ออกจากระบบ</span>
@@ -346,39 +371,72 @@ export default function DashboardPage() {
         ) : (
           /* Case 2: Real Salon Owner Dashboard */
           <div className="space-y-6 sm:space-y-8">
-            {/* Greeting Hero Banner */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 bg-gradient-to-r from-indigo-900 via-slate-900 to-violet-950 p-6 sm:p-8 rounded-3xl text-white shadow-lg relative overflow-hidden">
-              <div className="pointer-events-none absolute -right-16 -bottom-16 w-56 h-56 bg-indigo-500/10 rounded-full blur-3xl" />
+            {/* Prominent Shop Name & Package Hero Banner */}
+            <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-violet-950 p-6 sm:p-8 rounded-3xl text-white shadow-xl relative overflow-hidden border border-indigo-900/50">
+              <div className="pointer-events-none absolute -right-16 -bottom-16 w-64 h-64 bg-indigo-500/15 rounded-full blur-3xl" />
+              <div className="pointer-events-none absolute top-0 right-1/4 w-40 h-40 bg-emerald-500/10 rounded-full blur-2xl" />
 
-              <div className="relative z-10 space-y-1.5">
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-indigo-200 backdrop-blur-md mb-1">
-                  <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
-                  ระบบบริหารร้านซาลอน & บาร์เบอร์ออนไลน์
+              <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                {/* Left: Shop Identity & Welcome */}
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-indigo-200 backdrop-blur-md">
+                      <Store className="w-3.5 h-3.5 text-indigo-300" />
+                      ร้านค้าที่กำลังจัดการ
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 px-3 py-1 text-xs font-bold">
+                      <Gift className="w-3.5 h-3.5 text-emerald-400" />
+                      แพ็กเกจ: ทดลองใช้ฟรี 2 เดือนเต็ม (All-Access)
+                    </span>
+                  </div>
+
+                  {/* Big Bold Shop Name */}
+                  <div className="space-y-1">
+                    <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold">
+                      ชื่อร้านของคุณ
+                    </div>
+                    <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white flex items-center gap-2">
+                      <span>{shop.name}</span>
+                      <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 fill-amber-400 shrink-0" />
+                    </h1>
+                  </div>
+
+                  <p className="text-slate-300 text-xs sm:text-sm max-w-xl leading-relaxed">
+                    ยินดีต้อนรับคุณ <strong className="text-white">{user?.user_metadata?.full_name || user?.email}</strong> &bull; ปลดล็อกครบทุกฟังก์ชัน ไม่จำกัดจำนวนบิลและช่างในร้าน
+                  </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-                    {shop.name}
-                  </h1>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 px-3 py-0.5 text-xs font-bold">
-                    <Gift className="w-3.5 h-3.5 text-emerald-400" />
-                    {shop.plan_status === "trial" ? "ทดลองใช้ฟรี 2 เดือน (60 วัน)" : shop.plan_tier?.toUpperCase()}
-                  </span>
+                {/* Right: Plan Status & Countdown Box */}
+                <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
+                  <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-4 sm:p-5 text-left min-w-[260px]">
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <span className="text-xs text-indigo-200 font-semibold flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>ระยะเวลาทดลองใช้งาน</span>
+                      </span>
+                      <span className="text-xs font-black text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-400/30">
+                        เหลืออีก {daysRemaining} วัน
+                      </span>
+                    </div>
+
+                    <div className="text-lg sm:text-xl font-black text-white">
+                      หมดอายุ: {formattedExpiryDate}
+                    </div>
+
+                    <div className="text-[11px] text-slate-300 mt-1 flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>ไม่มีการตัดเงินอัตโนมัติ 100%</span>
+                    </div>
+                  </div>
+
+                  <Link
+                    href="/pos"
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white px-5 py-3.5 text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/30 transition-all active:scale-95 text-center"
+                  >
+                    <Receipt className="w-4 h-4" />
+                    <span>เข้าสู่หน้าจอ POS คิดเงิน</span>
+                  </Link>
                 </div>
-
-                <p className="text-slate-300 text-xs sm:text-sm max-w-xl leading-relaxed">
-                  ยินดีต้อนรับ {user?.user_metadata?.full_name || user?.email} &bull; สิทธิ์การใช้งานปลดล็อกครบทุกฟังก์ชัน ไม่จำกัดจำนวนบิลและช่างในร้าน
-                </p>
-              </div>
-
-              <div className="relative z-10 flex items-center gap-3 shrink-0">
-                <Link
-                  href="/pos"
-                  className="inline-flex items-center gap-2 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-3 text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/25 transition-all active:scale-95"
-                >
-                  <Receipt className="w-4 h-4" />
-                  <span>เข้าสู่หน้าจอ POS คิดเงิน</span>
-                </Link>
               </div>
             </div>
 
