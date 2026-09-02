@@ -408,81 +408,46 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* 2. Main Action Hub: Clean, Focused on Daily Operations & Settings */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 sm:gap-5">
-              {/* Primary Daily Operational Card: POS Cashier Checkout */}
-              <div className="md:col-span-7 bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 rounded-2xl sm:rounded-3xl p-5 sm:p-7 text-white shadow-lg shadow-indigo-600/20 relative overflow-hidden flex flex-col justify-between">
-                <div className="pointer-events-none absolute -right-8 -bottom-8 w-36 h-36 bg-white/10 rounded-full blur-2xl" />
+            {/* 2. Main Action Hub: 100% Focused on Daily POS Operations */}
+            <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 text-white shadow-lg shadow-indigo-600/20 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="pointer-events-none absolute -right-12 -bottom-12 w-48 h-48 bg-white/10 rounded-full blur-2xl" />
 
-                <div className="relative z-10 space-y-3">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-white border border-white/20 text-xs font-bold w-fit">
-                    <Receipt className="w-3.5 h-3.5" />
-                    <span>ระบบขายหน้าร้าน (Cashier POS)</span>
-                  </div>
-
-                  <div>
-                    <h2 className="text-xl sm:text-2xl font-black tracking-tight">
-                      เปิดบิลคิดเงิน & สรุปค่าคอมฯ
-                    </h2>
-                    <p className="text-xs sm:text-sm text-indigo-100 mt-1 leading-relaxed">
-                      เลือกช่าง เลือกบริการ คิดเงินไวใน 3 วินาที พร้อมพิมพ์หรือส่งสลิปให้ลูกค้า
-                    </p>
-                  </div>
+              <div className="relative z-10 space-y-3 max-w-xl">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-white border border-white/20 text-xs font-bold w-fit">
+                  <Receipt className="w-3.5 h-3.5" />
+                  <span>ระบบขายหน้าร้าน (Cashier POS)</span>
                 </div>
 
-                <div className="relative z-10 pt-5">
-                  <button
-                    onClick={() => alert("ระบบเปิดบิล POS กำลังพัฒนาในขั้นตอนถัดไปครับ!")}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-white hover:bg-slate-50 text-indigo-700 font-extrabold text-sm shadow-md transition-all active:scale-98 cursor-pointer"
-                  >
-                    <span>⚡️ เข้าสู่หน้าจอคิดเงิน POS</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
+                <div>
+                  <h2 className="text-xl sm:text-3xl font-black tracking-tight">
+                    เปิดบิลคิดเงิน & สรุปค่าคอมฯ
+                  </h2>
+                  <p className="text-xs sm:text-sm text-indigo-100 mt-1.5 leading-relaxed">
+                    เลือกช่าง เลือกบริการ คิดเงินไวใน 3 วินาที พร้อมระบบตัดยอดเงินและคำนวณส่วนแบ่งค่าคอมมิชชันอัตโนมัติ
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/10 border border-white/15 text-indigo-100 font-semibold">
+                    <Users className="w-3.5 h-3.5 text-indigo-200" />
+                    <span>ช่างพร้อมทำงาน {activeStaffCount}/{staffList.length} คน</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/10 border border-white/15 text-indigo-100 font-semibold">
+                    <Tag className="w-3.5 h-3.5 text-amber-300" />
+                    <span>เมนูบริการ {servicesList.length} รายการ</span>
+                  </span>
                 </div>
               </div>
 
-              {/* Secondary Card: Quick Link to Settings Hub */}
-              <Link
-                href="/settings"
-                className="group md:col-span-5 bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 border border-slate-200/80 hover:border-indigo-400 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-2xl bg-slate-100 group-hover:bg-indigo-50 text-slate-700 group-hover:text-indigo-600 flex items-center justify-center transition-colors shrink-0">
-                      <Settings className="w-5 h-5 sm:w-6 sm:h-6" />
-                    </div>
-                    <span className="text-xs font-bold text-indigo-600 group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
-                      <span>ตั้งค่าระบบ</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </span>
-                  </div>
-
-                  <div>
-                    <h3 className="text-base sm:text-lg font-black text-slate-900">
-                      ศูนย์การตั้งค่าร้านค้า
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                      จัดการช่าง ค่าคอมมิชชัน เมนูบริการ และราคามาตรฐาน
-                    </p>
-                  </div>
-
-                  {/* Summary Metric Badges */}
-                  <div className="pt-2 flex flex-wrap gap-2">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-xl border border-purple-200">
-                      <Users className="w-3 h-3 text-purple-600" />
-                      <span>{staffList.length} ช่าง (พร้อม {activeStaffCount})</span>
-                    </span>
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200">
-                      <Tag className="w-3 h-3 text-amber-600" />
-                      <span>{servicesList.length} บริการ</span>
-                    </span>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-slate-100 text-xs font-bold text-slate-400 group-hover:text-slate-700 transition-colors">
-                  เข้าสู่หน้าการตั้งค่าร้านค้า &rarr;
-                </div>
-              </Link>
+              <div className="relative z-10 shrink-0">
+                <button
+                  onClick={() => alert("ระบบเปิดบิล POS กำลังพัฒนาในขั้นตอนถัดไปครับ!")}
+                  className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-white hover:bg-slate-50 text-indigo-700 font-black text-sm sm:text-base shadow-xl transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+                >
+                  <span>⚡️ เข้าสู่หน้าจอคิดเงิน POS</span>
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           </div>
         )}
