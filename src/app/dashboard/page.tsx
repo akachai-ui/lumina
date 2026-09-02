@@ -229,22 +229,24 @@ export default function DashboardPage() {
         onDeclined={handleSignOut}
       />
 
-      {/* Top Header Bar */}
+      {/* Top Header Bar - Optimized for Mobile, Tablet & Desktop */}
       <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
+          {/* Logo & Shop Info (Smart responsive hiding) */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/20 shrink-0">
-                <Scissors className="h-5 w-5 rotate-[-45deg]" />
+              <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/20 shrink-0">
+                <Scissors className="h-4 w-4 sm:h-5 sm:w-5 rotate-[-45deg]" />
               </div>
-              <span className="text-lg sm:text-xl font-black tracking-tight text-slate-900">
+              <span className="text-base sm:text-xl font-black tracking-tight text-slate-900">
                 LUMINA
               </span>
             </Link>
 
+            {/* Desktop / Tablet Shop Badge (Hidden on mobile to prevent navbar crowding) */}
             {shop && (
-              <div className="flex items-center gap-1.5 sm:gap-2 border-l border-slate-200 pl-2.5 sm:pl-3">
-                <span className="text-xs sm:text-sm font-extrabold text-slate-800 truncate max-w-[120px] sm:max-w-[200px]">
+              <div className="hidden sm:flex items-center gap-2 border-l border-slate-200 pl-3">
+                <span className="text-xs sm:text-sm font-extrabold text-slate-800 truncate max-w-[140px] md:max-w-[200px]">
                   {shop.name}
                 </span>
                 <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] sm:text-xs font-bold text-emerald-700 border border-emerald-200 flex items-center gap-1 shrink-0">
@@ -255,28 +257,33 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Top Actions */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* Top Actions: Touch-friendly & Clean */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            {/* Staff Shortcut */}
             <Link
               href="/staff"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 px-2.5 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 px-2.5 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs active:scale-95"
             >
               <Users className="w-3.5 h-3.5 text-purple-600" />
               <span>จัดการช่าง</span>
             </Link>
 
+            {/* Checklist */}
             <Link
               href="/checklist"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 px-2.5 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 px-2 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs active:scale-95"
+              title="ดูผลการทดสอบระบบ"
             >
               <ClipboardCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="hidden sm:inline">ผลการทดสอบ</span>
-              <span>(Checklist)</span>
+              <span className="hidden md:inline">ผลการทดสอบ</span>
+              <span className="hidden sm:inline">(Checklist)</span>
             </Link>
 
+            {/* Logout */}
             <button
               onClick={handleSignOut}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 px-2.5 sm:px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 p-2 sm:px-3 sm:py-1.5 rounded-xl transition-colors cursor-pointer active:scale-95"
+              title="ออกจากระบบ"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">ออกจากระบบ</span>
@@ -285,11 +292,11 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1 space-y-5">
+      {/* Main Content Area - Fluid for Smartphone, Tablet Portrait & Landscape */}
+      <main className="max-w-7xl mx-auto w-full px-3.5 sm:px-6 lg:px-8 py-4 sm:py-7 flex-1 space-y-4 sm:space-y-6">
         {!shop ? (
           /* First-time Setup Wizard */
-          <div className="max-w-md mx-auto bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl mt-6">
+          <div className="max-w-md mx-auto bg-white rounded-3xl p-5 sm:p-8 border border-slate-200 shadow-xl mt-4">
             <div className="text-center mb-6">
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 mb-3">
                 <Store className="w-6 h-6" />
@@ -344,7 +351,7 @@ export default function DashboardPage() {
               <button
                 type="submit"
                 disabled={creatingShop}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 px-4 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all cursor-pointer disabled:opacity-60"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 px-4 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all cursor-pointer disabled:opacity-60 active:scale-98"
               >
                 {creatingShop ? (
                   <>
@@ -358,42 +365,42 @@ export default function DashboardPage() {
             </form>
           </div>
         ) : (
-          <div className="space-y-5">
-            {/* 1. Top Banner: Shop Name & Package */}
-            <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-violet-950 p-6 sm:p-7 rounded-3xl text-white shadow-lg relative overflow-hidden border border-indigo-900/50">
-              <div className="pointer-events-none absolute -right-16 -bottom-16 w-56 h-56 bg-indigo-500/10 rounded-full blur-3xl" />
+          <div className="space-y-4 sm:space-y-6">
+            {/* 1. Hero Banner: Fully fluid responsive */}
+            <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-violet-950 p-4 sm:p-7 rounded-2xl sm:rounded-3xl text-white shadow-lg relative overflow-hidden border border-indigo-900/50">
+              <div className="pointer-events-none absolute -right-16 -bottom-16 w-48 sm:w-56 h-48 sm:h-56 bg-indigo-500/10 rounded-full blur-3xl" />
 
               <div className="relative z-10 space-y-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-indigo-300 font-semibold flex items-center gap-1.5">
-                    <Store className="w-4 h-4 text-indigo-400" />
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  <span className="text-[11px] sm:text-xs text-indigo-300 font-semibold flex items-center gap-1">
+                    <Store className="w-3.5 h-3.5 text-indigo-400" />
                     <span>ร้านของคุณ:</span>
                   </span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 px-2.5 py-0.5 text-xs font-bold">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 px-2 py-0.5 text-[10px] sm:text-xs font-bold">
                     <Gift className="w-3 h-3 text-emerald-400" />
                     <span>แพ็กเกจ: ทดลองใช้ฟรี 2 เดือน (เหลือ {daysRemaining} วัน)</span>
                   </span>
                 </div>
 
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight flex items-center gap-2">
+                <h1 className="text-xl sm:text-3xl font-black tracking-tight flex items-center gap-2">
                   <span>{shop.name}</span>
-                  <Sparkles className="w-5 h-5 text-amber-400 fill-amber-400 shrink-0" />
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 fill-amber-400 shrink-0" />
                 </h1>
 
-                <p className="text-slate-300 text-xs sm:text-sm">
+                <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
                   ยินดีต้อนรับ {user?.user_metadata?.full_name || user?.email} &bull; สิทธิ์การใช้งานปลดล็อกครบทุกฟังก์ชัน
                 </p>
               </div>
             </div>
 
-            {/* 2. Compact Staff Widget Card (Click to View Staff List) */}
+            {/* 2. Compact Staff Widget Card: Fits mobile, tablet portrait & landscape */}
             <div>
               <Link
                 href="/staff"
-                className="group inline-flex items-center justify-between gap-4 bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs hover:border-purple-400 hover:shadow-md transition-all duration-150 active:scale-[0.98] w-full sm:w-auto sm:min-w-[340px]"
+                className="group inline-flex items-center justify-between gap-3 sm:gap-4 bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/90 shadow-2xs hover:border-purple-400 hover:shadow-md transition-all duration-150 active:scale-[0.98] w-full sm:w-auto sm:min-w-[340px]"
               >
                 <div className="flex items-center gap-3">
-                  <div className="h-11 w-11 rounded-xl bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0 group-hover:scale-105 transition-transform">
+                  <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0 group-hover:scale-105 transition-transform">
                     <Users className="h-5 w-5" />
                   </div>
 
@@ -402,10 +409,10 @@ export default function DashboardPage() {
                       ช่างในร้าน
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-lg font-black text-slate-900 leading-none">
+                      <span className="text-base sm:text-lg font-black text-slate-900 leading-none">
                         {staffList.length} คน
                       </span>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0">
+                      <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                         พร้อม {activeStaffCount}
                       </span>
@@ -416,7 +423,7 @@ export default function DashboardPage() {
                 {/* Right: Stylist Avatar Preview + Arrow */}
                 <div className="flex items-center gap-2 pl-2 border-l border-slate-100 shrink-0">
                   {staffList.length > 0 && staffList[0]?.image_url && (
-                    <div className="relative h-8 w-8 rounded-full overflow-hidden border border-slate-200 shadow-2xs shrink-0">
+                    <div className="relative h-7 w-7 sm:h-8 sm:w-8 rounded-full overflow-hidden border border-slate-200 shadow-2xs shrink-0">
                       <Image
                         src={staffList[0].image_url}
                         alt={staffList[0].name}
@@ -427,8 +434,8 @@ export default function DashboardPage() {
                     </div>
                   )}
 
-                  <div className="h-8 w-8 rounded-xl bg-slate-50 group-hover:bg-purple-50 text-slate-400 group-hover:text-purple-600 flex items-center justify-center transition-colors">
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl bg-slate-50 group-hover:bg-purple-50 text-slate-400 group-hover:text-purple-600 flex items-center justify-center transition-colors">
+                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </div>
               </Link>
@@ -437,8 +444,8 @@ export default function DashboardPage() {
         )}
       </main>
 
-      {/* Clean Footer */}
-      <footer className="w-full max-w-7xl mx-auto px-4 py-4 text-center text-xs text-slate-400 border-t border-slate-200/60 mt-8">
+      {/* Clean Responsive Footer */}
+      <footer className="w-full max-w-7xl mx-auto px-4 py-3.5 sm:py-4 text-center text-[11px] sm:text-xs text-slate-400 border-t border-slate-200/60 mt-6">
         LUMINA &bull; แพลตฟอร์มบริหารร้านซาลอนและบาร์เบอร์ &bull; สิทธิ์ทดลองใช้งานฟรี 2 เดือนเต็ม
       </footer>
     </div>
