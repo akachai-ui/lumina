@@ -21,9 +21,11 @@ import {
   X,
   UserCheck,
   Calendar,
+  Sparkles,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/database";
+import { compressImage } from "@/lib/image-compression";
 
 type Staff = Database["public"]["Tables"]["staff"]["Row"];
 type Shop = Database["public"]["Tables"]["shops"]["Row"];
@@ -42,6 +44,7 @@ export default function StaffPage() {
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [compressionInfo, setCompressionInfo] = useState<string | null>(null);
 
   // Form Fields
   const [name, setName] = useState("");
@@ -136,6 +139,7 @@ export default function StaffPage() {
     setImageUrl("");
     setSelectedFile(null);
     setPreviewUrl(null);
+    setCompressionInfo(null);
     setIsActive(true);
     setErrorMessage(null);
     setIsModalOpen(true);
@@ -156,21 +160,37 @@ export default function StaffPage() {
     setImageUrl(staff.image_url || "");
     setSelectedFile(null);
     setPreviewUrl(staff.image_url || null);
+    setCompressionInfo(null);
     setIsActive(staff.is_active ?? true);
     setErrorMessage(null);
     setIsModalOpen(true);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Photo File Selection with Automatic Mobile Compression
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      if (file.size > 5 * 1024 * 1024) {
-        setErrorMessage("ขนาดรูปภาพต้องไม่เกิน 5MB");
-        return;
+      const rawFile = e.target.files[0];
+      const originalSizeMB = (rawFile.size / (1024 * 1024)).toFixed(2);
+
+      try {
+        setUploadingPhoto(true);
+        // Automatically compress large smartphone photos to standard ~1000px and ~150-300KB
+        const compressed = await compressImage(rawFile, 1000, 1000, 0.82);
+        const compressedSizeKB = Math.round(compressed.size / 1024);
+
+        setSelectedFile(compressed);
+        setPreviewUrl(URL.createObjectURL(compressed));
+        setCompressionInfo(
+          `ปรับขนาดรูปภาพอัตโนมัติแล้ว: จาก ${originalSizeMB} MB เหลือ ${compressedSizeKB} KB`
+        );
+        setErrorMessage(null);
+      } catch (err) {
+        console.error("Image compression error:", err);
+        setSelectedFile(rawFile);
+        setPreviewUrl(URL.createObjectURL(rawFile));
+      } finally {
+        setUploadingPhoto(false);
       }
-      setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
-      setErrorMessage(null);
     }
   };
 
@@ -178,6 +198,7 @@ export default function StaffPage() {
     setSelectedFile(null);
     setPreviewUrl(null);
     setImageUrl("");
+    setCompressionInfo(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -193,17 +214,18 @@ export default function StaffPage() {
     try {
       let finalImageUrl = imageUrl.trim() || null;
 
+      // Upload compressed photo to Supabase Storage bucket 'staff_photos'
       if (selectedFile) {
         setUploadingPhoto(true);
-        const fileExt = selectedFile.name.split(".").pop() || "jpg";
         const cleanFileName = `${shop.id}/${Date.now()}_${Math.random()
           .toString(36)
-          .substring(2, 7)}.${fileExt}`;
+          .substring(2, 7)}.jpg`;
 
         const { error: uploadError } = await supabase.storage
           .from("staff_photos")
           .upload(cleanFileName, selectedFile, {
-            cacheControl: "3600",
+            contentType: "image/jpeg",
+            cacheControl: "31536000",
             upsert: true,
           });
 
@@ -658,7 +680,7 @@ export default function StaffPage() {
                 </div>
               )}
 
-              {/* Photo Upload Area */}
+              {/* Photo Upload Area with Automatic Compression */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
                   รูปถ่ายโปรไฟล์ช่าง (Profile Photo)
@@ -695,7 +717,7 @@ export default function StaffPage() {
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept="image/png, image/jpeg, image/webp"
+                      accept="image/*"
                       onChange={handleFileChange}
                       className="hidden"
                       id="staff-photo-upload"
@@ -705,11 +727,19 @@ export default function StaffPage() {
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 shadow-2xs cursor-pointer transition-all active:scale-95"
                     >
                       <Upload className="w-3.5 h-3.5 text-indigo-600" />
-                      <span>{previewUrl ? "เปลี่ยนรูปภาพ" : "เลือกรูปโปรไฟล์"}</span>
+                      <span>{previewUrl ? "เปลี่ยนรูปภาพ" : "เลือกรูปถ่ายจากมือถือ"}</span>
                     </label>
-                    <p className="text-[10px] sm:text-[11px] text-slate-400 mt-1">
-                      บันทึกลง staff_photos (PNG, JPG, WebP)
-                    </p>
+
+                    {compressionInfo ? (
+                      <p className="text-[10px] sm:text-[11px] text-emerald-600 font-bold mt-1 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 shrink-0" />
+                        <span>{compressionInfo}</span>
+                      </p>
+                    ) : (
+                      <p className="text-[10px] sm:text-[11px] text-slate-400 mt-1">
+                        ระบบบีบอัดรูปถ่ายมือถือขนาดใหญ่ให้อัตโนมัติ (โหลดไว คมชัด)
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -851,7 +881,7 @@ export default function StaffPage() {
                   {saving || uploadingPhoto ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>{uploadingPhoto ? "กำลังอัปโหลดรูป..." : "กำลังบันทึก..."}</span>
+                      <span>{uploadingPhoto ? "กำลังประมวลผลรูป..." : "กำลังบันทึก..."}</span>
                     </>
                   ) : (
                     <>
