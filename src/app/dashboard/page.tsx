@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Scissors,
@@ -12,8 +11,10 @@ import {
   Gift,
   ClipboardCheck,
   Store,
+  Settings,
+  ChevronRight,
+  Receipt,
   Users,
-  ArrowRight,
   Tag,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -271,35 +272,26 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Top Actions: Touch-friendly & Clean */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Services Shortcut */}
+          {/* Top Actions: Settings Hub & Checklist */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            {/* Settings Hub Link */}
             <Link
-              href="/services"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 px-2.5 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs active:scale-95 whitespace-nowrap shrink-0"
+              href="/settings"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 px-2.5 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs active:scale-95 whitespace-nowrap shrink-0"
+              title="ตั้งค่าร้านค้า ช่าง และบริการ"
             >
-              <Scissors className="w-3.5 h-3.5 text-amber-600 rotate-[-45deg]" />
-              <span>บริการ</span>
-            </Link>
-
-            {/* Staff Shortcut */}
-            <Link
-              href="/staff"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 px-2.5 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs active:scale-95 whitespace-nowrap shrink-0"
-            >
-              <Users className="w-3.5 h-3.5 text-purple-600" />
-              <span>ช่าง</span>
+              <Settings className="w-3.5 h-3.5 text-slate-600" />
+              <span>ตั้งค่าร้าน</span>
             </Link>
 
             {/* Checklist */}
             <Link
               href="/checklist"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 px-2 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs active:scale-95 whitespace-nowrap shrink-0"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 px-2.5 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs active:scale-95 whitespace-nowrap shrink-0"
               title="ดูผลการทดสอบระบบ"
             >
               <ClipboardCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="hidden md:inline">ผลการทดสอบ</span>
-              <span className="hidden sm:inline">(Checklist)</span>
+              <span className="hidden sm:inline">Checklist</span>
             </Link>
 
             {/* Logout */}
@@ -416,84 +408,79 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* 2. Compact Module Widgets Grid: Staff & Services */}
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-              {/* Staff Widget Card */}
-              <Link
-                href="/staff"
-                className="group inline-flex items-center justify-between gap-3 sm:gap-4 bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/90 shadow-2xs hover:border-purple-400 hover:shadow-md transition-all duration-150 active:scale-[0.98] w-full sm:w-auto sm:min-w-[320px]"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0 group-hover:scale-105 transition-transform">
-                    <Users className="h-5 w-5" />
+            {/* 2. Main Action Hub: Clean, Focused on Daily Operations & Settings */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 sm:gap-5">
+              {/* Primary Daily Operational Card: POS Cashier Checkout */}
+              <div className="md:col-span-7 bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 rounded-2xl sm:rounded-3xl p-5 sm:p-7 text-white shadow-lg shadow-indigo-600/20 relative overflow-hidden flex flex-col justify-between">
+                <div className="pointer-events-none absolute -right-8 -bottom-8 w-36 h-36 bg-white/10 rounded-full blur-2xl" />
+
+                <div className="relative z-10 space-y-3">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-white border border-white/20 text-xs font-bold w-fit">
+                    <Receipt className="w-3.5 h-3.5" />
+                    <span>ระบบขายหน้าร้าน (Cashier POS)</span>
                   </div>
 
                   <div>
-                    <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                      ช่างในร้าน
-                    </div>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-base sm:text-lg font-black text-slate-900 leading-none">
-                        {staffList.length} คน
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        พร้อม {activeStaffCount}
-                      </span>
-                    </div>
+                    <h2 className="text-xl sm:text-2xl font-black tracking-tight">
+                      เปิดบิลคิดเงิน & สรุปค่าคอมฯ
+                    </h2>
+                    <p className="text-xs sm:text-sm text-indigo-100 mt-1 leading-relaxed">
+                      เลือกช่าง เลือกบริการ คิดเงินไวใน 3 วินาที พร้อมพิมพ์หรือส่งสลิปให้ลูกค้า
+                    </p>
                   </div>
                 </div>
 
-                {/* Right: Stylist Avatar Preview + Arrow */}
-                <div className="flex items-center gap-2 pl-2 border-l border-slate-100 shrink-0">
-                  {staffList.length > 0 && staffList[0]?.image_url && (
-                    <div className="relative h-7 w-7 sm:h-8 sm:w-8 rounded-full overflow-hidden border border-slate-200 shadow-2xs shrink-0">
-                      <Image
-                        src={staffList[0].image_url}
-                        alt={staffList[0].name}
-                        fill
-                        unoptimized
-                        className="object-cover"
-                      />
-                    </div>
-                  )}
-
-                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl bg-slate-50 group-hover:bg-purple-50 text-slate-400 group-hover:text-purple-600 flex items-center justify-center transition-colors">
-                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform" />
-                  </div>
+                <div className="relative z-10 pt-5">
+                  <button
+                    onClick={() => alert("ระบบเปิดบิล POS กำลังพัฒนาในขั้นตอนถัดไปครับ!")}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-white hover:bg-slate-50 text-indigo-700 font-extrabold text-sm shadow-md transition-all active:scale-98 cursor-pointer"
+                  >
+                    <span>⚡️ เข้าสู่หน้าจอคิดเงิน POS</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
                 </div>
-              </Link>
+              </div>
 
-              {/* Services Widget Card */}
+              {/* Secondary Card: Quick Link to Settings Hub */}
               <Link
-                href="/services"
-                className="group inline-flex items-center justify-between gap-3 sm:gap-4 bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/90 shadow-2xs hover:border-amber-400 hover:shadow-md transition-all duration-150 active:scale-[0.98] w-full sm:w-auto sm:min-w-[320px]"
+                href="/settings"
+                className="group md:col-span-5 bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 border border-slate-200/80 hover:border-indigo-400 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
               >
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-gradient-to-tr from-amber-500 to-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0 group-hover:scale-105 transition-transform">
-                    <Scissors className="h-5 w-5 rotate-[-45deg]" />
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-2xl bg-slate-100 group-hover:bg-indigo-50 text-slate-700 group-hover:text-indigo-600 flex items-center justify-center transition-colors shrink-0">
+                      <Settings className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </div>
+                    <span className="text-xs font-bold text-indigo-600 group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
+                      <span>ตั้งค่าระบบ</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </span>
                   </div>
 
                   <div>
-                    <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                      เมนูบริการ
-                    </div>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-base sm:text-lg font-black text-slate-900 leading-none">
-                        {servicesList.length} รายการ
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 shrink-0">
-                        <Tag className="w-2.5 h-2.5 text-amber-600" />
-                        ราคามาตรฐาน
-                      </span>
-                    </div>
+                    <h3 className="text-base sm:text-lg font-black text-slate-900">
+                      ศูนย์การตั้งค่าร้านค้า
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                      จัดการช่าง ค่าคอมมิชชัน เมนูบริการ และราคามาตรฐาน
+                    </p>
+                  </div>
+
+                  {/* Summary Metric Badges */}
+                  <div className="pt-2 flex flex-wrap gap-2">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-xl border border-purple-200">
+                      <Users className="w-3 h-3 text-purple-600" />
+                      <span>{staffList.length} ช่าง (พร้อม {activeStaffCount})</span>
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200">
+                      <Tag className="w-3 h-3 text-amber-600" />
+                      <span>{servicesList.length} บริการ</span>
+                    </span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 pl-2 border-l border-slate-100 shrink-0">
-                  <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl bg-slate-50 group-hover:bg-amber-50 text-slate-400 group-hover:text-amber-600 flex items-center justify-center transition-colors">
-                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform" />
-                  </div>
+                <div className="pt-4 border-t border-slate-100 text-xs font-bold text-slate-400 group-hover:text-slate-700 transition-colors">
+                  เข้าสู่หน้าการตั้งค่าร้านค้า &rarr;
                 </div>
               </Link>
             </div>

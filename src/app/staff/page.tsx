@@ -427,13 +427,13 @@ export default function StaffPage() {
       {/* Top Navigation Bar - Ultra Clean, No Overflow on Mobile */}
       <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
-          {/* Left: Back to Dashboard */}
+          {/* Left: Back to Settings */}
           <Link
-            href="/dashboard"
+            href="/settings"
             className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-700 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl transition-all shadow-2xs active:scale-95 whitespace-nowrap shrink-0"
           >
             <ArrowLeft className="w-4 h-4 shrink-0" />
-            <span>กลับแดชบอร์ด</span>
+            <span>การตั้งค่า</span>
           </Link>
 
           {/* Center Shop Name (Desktop / Tablet only) */}
