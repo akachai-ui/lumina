@@ -22,6 +22,7 @@ import {
   UserCheck,
   Calendar,
   Sparkles,
+  AlertTriangle,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/database";
@@ -63,6 +64,10 @@ export default function StaffPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [compressionInfo, setCompressionInfo] = useState<string | null>(null);
 
+  // Delete Confirmation Modal State
+  const [staffToDelete, setStaffToDelete] = useState<Staff | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Form Fields
   const [name, setName] = useState("");
   const [wageType, setWageType] = useState<string>("monthly");
@@ -76,9 +81,6 @@ export default function StaffPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isActive, setIsActive] = useState(true);
-
-  // Delete Confirmation
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -365,21 +367,16 @@ export default function StaffPage() {
   };
 
   /**
-   * Delete staff and automatically cleanup their photo from Supabase Storage
+   * Execute deletion with automatic storage cleanup
    */
-  const handleDeleteStaff = async (id: string) => {
-    const targetStaff = staffList.find((s) => s.id === id);
-    const staffName = targetStaff?.name || "ช่างคนนี้";
+  const handleConfirmDelete = async () => {
+    if (!staffToDelete) return;
 
-    if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูล "${staffName}" ออกจากระบบ?`)) {
-      return;
-    }
-
-    setDeletingId(id);
+    setIsDeleting(true);
     try {
-      // 1. If staff has a photo in staff_photos bucket, remove it first
-      if (targetStaff?.image_url) {
-        const filePath = extractStoragePath(targetStaff.image_url, "staff_photos");
+      // 1. Remove photo from storage if exists
+      if (staffToDelete.image_url) {
+        const filePath = extractStoragePath(staffToDelete.image_url, "staff_photos");
         if (filePath) {
           const { error: storageError } = await supabase.storage
             .from("staff_photos")
@@ -392,15 +389,16 @@ export default function StaffPage() {
       }
 
       // 2. Delete staff row from database
-      const { error } = await supabase.from("staff").delete().eq("id", id);
+      const { error } = await supabase.from("staff").delete().eq("id", staffToDelete.id);
       if (error) throw error;
 
-      setStaffList((prev) => prev.filter((s) => s.id !== id));
+      setStaffList((prev) => prev.filter((s) => s.id !== staffToDelete.id));
+      setStaffToDelete(null);
     } catch (err) {
       console.error("Delete staff error:", err);
       alert("ไม่สามารถลบข้อมูลช่างได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
-      setDeletingId(null);
+      setIsDeleting(false);
     }
   };
 
@@ -673,18 +671,13 @@ export default function StaffPage() {
                         <span>แก้ไข</span>
                       </button>
 
-                      {/* Delete Button */}
+                      {/* Delete Button -> Opens Confirmation Modal */}
                       <button
-                        onClick={() => handleDeleteStaff(staff.id)}
-                        disabled={deletingId === staff.id}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer disabled:opacity-50 active:scale-95"
+                        onClick={() => setStaffToDelete(staff)}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer active:scale-95"
                         title="ลบช่าง"
                       >
-                        {deletingId === staff.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
-                        ) : (
-                          <Trash2 className="w-4 h-4" />
-                        )}
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -694,6 +687,96 @@ export default function StaffPage() {
           </div>
         )}
       </main>
+
+      {/* Global Standard Delete Confirmation Modal */}
+      {staffToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl border border-slate-200 p-5 sm:p-6 space-y-4 animate-in zoom-in-95 duration-150">
+            {/* Header Icon & Title */}
+            <div className="flex items-center gap-3">
+              <div className="h-11 w-11 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-slate-900">
+                  ยืนยันการลบข้อมูลช่าง?
+                </h3>
+                <p className="text-xs text-slate-500">
+                  โปรดตรวจสอบข้อมูลก่อนดำเนินการ
+                </p>
+              </div>
+            </div>
+
+            {/* Stylist Profile Preview Box */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center gap-3">
+              {staffToDelete.image_url ? (
+                <div className="relative h-11 w-11 rounded-xl overflow-hidden shadow-xs shrink-0 border border-slate-200">
+                  <Image
+                    src={staffToDelete.image_url}
+                    alt={staffToDelete.name}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="h-11 w-11 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-black text-sm shrink-0">
+                  {staffToDelete.name.charAt(0)}
+                </div>
+              )}
+
+              <div className="min-w-0">
+                <div className="text-sm font-extrabold text-slate-900 truncate">
+                  {staffToDelete.name}
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  คอมมิชชัน {staffToDelete.commission_percent ?? 0}% &bull;{" "}
+                  {staffToDelete.wage_type === "none"
+                    ? "คอมฯ ล้วน"
+                    : staffToDelete.wage_type === "monthly"
+                    ? "รายเดือน"
+                    : "รายวัน"}
+                </div>
+              </div>
+            </div>
+
+            {/* Warning Text */}
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200/70 text-xs text-amber-800 leading-relaxed">
+              ⚠️ ข้อมูลช่างและไฟล์รูปภาพในคลาวด์จะถูกลบออกถาวรทันที และไม่สามารถกู้คืนได้
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setStaffToDelete(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleConfirmDelete}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-rose-600/20 active:scale-95 transition-all cursor-pointer disabled:opacity-60"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>กำลังลบ...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>ลบข้อมูลถาวร</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add / Edit Staff Modal - Responsive for Landscape & Mobile */}
       {isModalOpen && (
