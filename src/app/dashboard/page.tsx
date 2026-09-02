@@ -12,18 +12,12 @@ import {
   ClipboardCheck,
   Store,
   Settings,
-  ChevronRight,
-  Receipt,
-  Users,
-  Tag,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/database";
 import TermsConsentModal from "@/components/TermsConsentModal";
 
 type Shop = Database["public"]["Tables"]["shops"]["Row"];
-type Staff = Database["public"]["Tables"]["staff"]["Row"];
-type Service = Database["public"]["Tables"]["services"]["Row"];
 type User = {
   id: string;
   email?: string;
@@ -47,8 +41,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [shop, setShop] = useState<Shop | null>(null);
-  const [staffList, setStaffList] = useState<Staff[]>([]);
-  const [servicesList, setServicesList] = useState<Service[]>([]);
   const [shopName, setShopName] = useState("");
   const [phone, setPhone] = useState("");
   const [creatingShop, setCreatingShop] = useState(false);
@@ -104,27 +96,7 @@ export default function DashboardPage() {
           const currentShop = shopsData[0] as Shop;
           setShop(currentShop);
 
-          // Fetch staff of this shop
-          const { data: staffData } = await supabase
-            .from("staff")
-            .select("*")
-            .eq("shop_id", currentShop.id)
-            .order("created_at", { ascending: false });
 
-          if (isMounted && staffData) {
-            setStaffList(staffData);
-          }
-
-          // Fetch services of this shop
-          const { data: servicesData } = await supabase
-            .from("services")
-            .select("*")
-            .eq("shop_id", currentShop.id)
-            .order("created_at", { ascending: false });
-
-          if (isMounted && servicesData) {
-            setServicesList(servicesData);
-          }
         }
       } catch (err) {
         console.error("Error loading dashboard data:", err);
@@ -231,7 +203,6 @@ export default function DashboardPage() {
   };
 
   const daysRemaining = calculateDaysRemaining();
-  const activeStaffCount = staffList.filter((s) => s.is_active).length;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
@@ -408,47 +379,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* 2. Main Action Hub: 100% Focused on Daily POS Operations */}
-            <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 text-white shadow-lg shadow-indigo-600/20 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="pointer-events-none absolute -right-12 -bottom-12 w-48 h-48 bg-white/10 rounded-full blur-2xl" />
 
-              <div className="relative z-10 space-y-3 max-w-xl">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-white border border-white/20 text-xs font-bold w-fit">
-                  <Receipt className="w-3.5 h-3.5" />
-                  <span>ระบบขายหน้าร้าน (Cashier POS)</span>
-                </div>
-
-                <div>
-                  <h2 className="text-xl sm:text-3xl font-black tracking-tight">
-                    เปิดบิลคิดเงิน & สรุปค่าคอมฯ
-                  </h2>
-                  <p className="text-xs sm:text-sm text-indigo-100 mt-1.5 leading-relaxed">
-                    เลือกช่าง เลือกบริการ คิดเงินไวใน 3 วินาที พร้อมระบบตัดยอดเงินและคำนวณส่วนแบ่งค่าคอมมิชชันอัตโนมัติ
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/10 border border-white/15 text-indigo-100 font-semibold">
-                    <Users className="w-3.5 h-3.5 text-indigo-200" />
-                    <span>ช่างพร้อมทำงาน {activeStaffCount}/{staffList.length} คน</span>
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/10 border border-white/15 text-indigo-100 font-semibold">
-                    <Tag className="w-3.5 h-3.5 text-amber-300" />
-                    <span>เมนูบริการ {servicesList.length} รายการ</span>
-                  </span>
-                </div>
-              </div>
-
-              <div className="relative z-10 shrink-0">
-                <button
-                  onClick={() => alert("ระบบเปิดบิล POS กำลังพัฒนาในขั้นตอนถัดไปครับ!")}
-                  className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-white hover:bg-slate-50 text-indigo-700 font-black text-sm sm:text-base shadow-xl transition-all active:scale-95 cursor-pointer whitespace-nowrap"
-                >
-                  <span>⚡️ เข้าสู่หน้าจอคิดเงิน POS</span>
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
           </div>
         )}
       </main>
