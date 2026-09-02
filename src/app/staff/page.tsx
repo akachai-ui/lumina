@@ -10,7 +10,7 @@ import {
   ArrowLeft,
   Loader2,
   Trash2,
-  Edit2,
+  Edit3,
   Check,
   Percent,
   Banknote,
@@ -20,6 +20,9 @@ import {
   Camera,
   Upload,
   X,
+  UserCheck,
+  Calendar,
+  
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/database";
@@ -160,17 +163,13 @@ export default function StaffPage() {
     setIsModalOpen(true);
   };
 
-  // Handle Photo File Selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-
-      // Limit file size to 5MB
       if (file.size > 5 * 1024 * 1024) {
         setErrorMessage("ขนาดรูปภาพต้องไม่เกิน 5MB");
         return;
       }
-
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
       setErrorMessage(null);
@@ -196,7 +195,6 @@ export default function StaffPage() {
     try {
       let finalImageUrl = imageUrl.trim() || null;
 
-      // Upload photo to Supabase Storage bucket 'staff_photos'
       if (selectedFile) {
         setUploadingPhoto(true);
         const fileExt = selectedFile.name.split(".").pop() || "jpg";
@@ -215,7 +213,6 @@ export default function StaffPage() {
           throw new Error(`อัปโหลดรูปไม่สำเร็จ: ${uploadError.message}`);
         }
 
-        // Get public URL
         const { data: publicUrlData } = supabase.storage
           .from("staff_photos")
           .getPublicUrl(cleanFileName);
@@ -231,7 +228,6 @@ export default function StaffPage() {
         : null;
 
       if (editingStaff) {
-        // Update existing staff
         const { data, error } = await (
           supabase.from("staff") as ReturnType<typeof supabase.from>
         )
@@ -255,7 +251,6 @@ export default function StaffPage() {
           prev.map((s) => (s.id === editingStaff.id ? (data as Staff) : s))
         );
       } else {
-        // Insert new staff
         type StaffInsert = Database["public"]["Tables"]["staff"]["Insert"];
         const newStaff: StaffInsert = {
           shop_id: shop.id,
@@ -297,7 +292,6 @@ export default function StaffPage() {
   const handleToggleActive = async (staff: Staff) => {
     const nextState = !staff.is_active;
 
-    // Optimistic update
     setStaffList((prev) =>
       prev.map((s) => (s.id === staff.id ? { ...s, is_active: nextState } : s))
     );
@@ -312,7 +306,6 @@ export default function StaffPage() {
       if (error) throw error;
     } catch (err) {
       console.error("Toggle active error:", err);
-      // Revert on failure
       setStaffList((prev) =>
         prev.map((s) => (s.id === staff.id ? { ...s, is_active: staff.is_active } : s))
       );
@@ -320,6 +313,10 @@ export default function StaffPage() {
   };
 
   const handleDeleteStaff = async (id: string) => {
+    if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลช่างคนนี้ออกจากระบบ?")) {
+      return;
+    }
+
     setDeletingId(id);
     try {
       const { error } = await supabase.from("staff").delete().eq("id", id);
@@ -338,6 +335,8 @@ export default function StaffPage() {
     s.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const activeStaffCount = staffList.filter((s) => s.is_active).length;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -352,10 +351,10 @@ export default function StaffPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
-      {/* Top Header Bar */}
+    <div className="min-h-screen bg-gradient-to-b from-slate-100/70 via-slate-50 to-slate-100/40 flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+      {/* Top Navigation Bar */}
       <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5 sm:gap-3">
             <Link
               href="/dashboard"
@@ -370,7 +369,7 @@ export default function StaffPage() {
                 <span className="text-xs sm:text-sm font-extrabold text-slate-800 truncate max-w-[120px] sm:max-w-[180px]">
                   {shop.name}
                 </span>
-                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] sm:text-xs font-bold text-emerald-700 border border-emerald-200 flex items-center gap-1 shrink-0">
+                <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] sm:text-xs font-bold text-emerald-700 border border-emerald-200 flex items-center gap-1 shrink-0">
                   <Gift className="w-3 h-3 text-emerald-600" />
                   <span>TRIAL 2 เดือน</span>
                 </span>
@@ -381,7 +380,7 @@ export default function StaffPage() {
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={openAddModal}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/20 active:scale-95 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/25 active:scale-95 transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>เพิ่มช่างใหม่</span>
@@ -390,43 +389,59 @@ export default function StaffPage() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1 space-y-6">
-        {/* Title & Search Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
+      {/* Main Content Container */}
+      <main className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1 space-y-6">
+        {/* Header Hero Card */}
+        <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <div className="h-9 w-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-purple-500/20">
                 <Users className="h-5 w-5" />
               </div>
               <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
                 จัดการรายชื่อช่าง & ค่าคอมมิชชัน
               </h1>
             </div>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              เพิ่มช่าง อัปโหลดรูปภาพ กำหนดส่วนแบ่ง % ค่าคอมมิชชัน และสถานะพร้อมให้บริการ
+            <p className="text-xs sm:text-sm text-slate-500">
+              กำหนดส่วนแบ่ง % ค่าคอมมิชชัน บันทึกเงินเดือน และเปิด/ปิดสถานะพร้อมให้บริการ
             </p>
           </div>
 
-          {/* Search Bar */}
-          <div className="flex items-center gap-2">
-            <div className="relative w-full sm:w-64">
+          {/* Quick Metrics & Search Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            {/* Staff Counter Pills */}
+            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/80 px-3.5 py-1.5 rounded-2xl">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                <Users className="w-3.5 h-3.5 text-purple-600" />
+                <span>ทั้งหมด:</span>
+                <span className="text-slate-900 font-extrabold">{staffList.length}</span>
+              </div>
+              <span className="text-slate-300">&bull;</span>
+              <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>พร้อมทำงาน:</span>
+                <span className="font-extrabold">{activeStaffCount}</span>
+              </div>
+            </div>
+
+            {/* Search Input */}
+            <div className="relative w-full sm:w-56">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="ค้นหาชื่อช่าง..."
-                className="w-full pl-9 pr-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600"
+                className="w-full pl-9 pr-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 shadow-2xs"
               />
             </div>
           </div>
         </div>
 
-        {/* Staff List Grid */}
+        {/* Staff Cards Grid */}
         {filteredStaff.length === 0 ? (
-          <div className="bg-white rounded-3xl p-8 sm:p-12 text-center border border-slate-200 shadow-xs max-w-lg mx-auto space-y-4">
-            <div className="h-16 w-16 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto">
+          <div className="bg-white rounded-3xl p-10 sm:p-14 text-center border border-slate-200/80 shadow-xs max-w-lg mx-auto space-y-4">
+            <div className="h-16 w-16 rounded-3xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto shadow-inner">
               <Users className="w-8 h-8" />
             </div>
             <div className="space-y-1">
@@ -434,14 +449,14 @@ export default function StaffPage() {
                 {searchQuery ? "ไม่พบรายชื่อช่างที่ค้นหา" : "ยังไม่มีรายชื่อช่างในร้าน"}
               </h3>
               <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-sm mx-auto">
-                เริ่มต้นเพิ่มช่างพร้อมรูปโปรไฟล์ในร้านของคุณ เพื่อนำไปใช้คิดเงินในหน้าจอ POS และคำนวณค่าคอมฯ ช่างอัตโนมัติ
+                เริ่มต้นเพิ่มช่างคนแรกของร้านคุณ เพื่อนำไปใช้คิดเงินในหน้าจอ POS และคำนวณค่าคอมฯ อัตโนมัติ
               </p>
             </div>
 
             <div className="pt-2">
               <button
                 onClick={openAddModal}
-                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/20 active:scale-95 transition-all cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-600/25 active:scale-95 transition-all cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>+ เพิ่มช่างคนแรกของร้าน</span>
@@ -449,25 +464,34 @@ export default function StaffPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredStaff.map((staff) => {
               const initial = staff.name.trim().charAt(0) || "ช";
+
+              const formattedDate = staff.start_date
+                ? new Date(staff.start_date).toLocaleDateString("th-TH", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })
+                : null;
 
               return (
                 <div
                   key={staff.id}
-                  className={`bg-white rounded-3xl p-5 sm:p-6 border transition-all shadow-xs relative flex flex-col justify-between ${
+                  className={`bg-white rounded-3xl border transition-all duration-200 flex flex-col justify-between overflow-hidden shadow-xs hover:shadow-lg ${
                     staff.is_active
-                      ? "border-slate-200/90 hover:border-indigo-400 hover:shadow-md"
-                      : "border-slate-200/50 bg-slate-50/50 opacity-70"
+                      ? "border-slate-200/80 hover:border-indigo-400"
+                      : "border-slate-200/50 bg-slate-50/40 opacity-75"
                   }`}
                 >
-                  <div>
-                    {/* Top row: Photo/Avatar + Name + Status Toggle */}
-                    <div className="flex items-start justify-between gap-3 mb-4">
-                      <div className="flex items-center gap-3">
+                  <div className="p-5 sm:p-6 space-y-4">
+                    {/* Header: Stylist Profile & Status Switch */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3.5">
+                        {/* Profile Picture / Avatar */}
                         {staff.image_url ? (
-                          <div className="relative h-13 w-13 rounded-2xl overflow-hidden shadow-md shrink-0 border border-slate-200">
+                          <div className="relative h-14 w-14 rounded-2xl overflow-hidden shadow-md shrink-0 border-2 border-white ring-2 ring-indigo-500/20">
                             <Image
                               src={staff.image_url}
                               alt={staff.name}
@@ -477,27 +501,30 @@ export default function StaffPage() {
                             />
                           </div>
                         ) : (
-                          <div className="h-13 w-13 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center text-lg font-black shadow-md shadow-purple-500/20 shrink-0">
+                          <div className="h-14 w-14 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center text-xl font-black shadow-md shadow-purple-500/25 shrink-0 border-2 border-white ring-2 ring-purple-500/20">
                             {initial}
                           </div>
                         )}
-                        <div>
-                          <h3 className="text-base font-extrabold text-slate-900">
+
+                        {/* Name & Start Date */}
+                        <div className="space-y-0.5">
+                          <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
                             {staff.name}
                           </h3>
-                          <span className="text-[11px] text-slate-400 font-medium">
-                            เริ่มงาน: {staff.start_date || "ไม่ระบุ"}
-                          </span>
+                          <div className="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
+                            <Calendar className="w-3 h-3 text-slate-400" />
+                            <span>เริ่มงาน: {formattedDate || "ไม่ระบุ"}</span>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Active Status Badge & Switch */}
+                      {/* Active Status Badge Button */}
                       <button
                         onClick={() => handleToggleActive(staff)}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer select-none ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold transition-all cursor-pointer shadow-2xs select-none ${
                           staff.is_active
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : "bg-slate-200 text-slate-600 border border-slate-300"
+                            ? "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200"
+                            : "bg-slate-100 hover:bg-slate-200 text-slate-500 border border-slate-200"
                         }`}
                         title="คลิกเพื่อสลับสถานะ"
                       >
@@ -510,23 +537,26 @@ export default function StaffPage() {
                       </button>
                     </div>
 
-                    {/* Stats Pill: Commission & Wage */}
-                    <div className="grid grid-cols-2 gap-2.5 mb-4">
-                      {/* Commission % */}
-                      <div className="bg-purple-50/60 border border-purple-100 rounded-2xl p-3">
-                        <div className="text-[10px] font-bold text-purple-700 uppercase tracking-wider flex items-center gap-1 mb-0.5">
-                          <Percent className="w-3 h-3" />
+                    {/* Financial Metrics Cards (Commission & Wage) */}
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {/* Commission % Card */}
+                      <div className="bg-gradient-to-br from-purple-50/70 to-indigo-50/50 border border-purple-100/80 rounded-2xl p-3.5 shadow-2xs">
+                        <div className="text-[10px] font-bold text-purple-700 uppercase tracking-wider flex items-center gap-1 mb-1">
+                          <Percent className="w-3 h-3 text-purple-600" />
                           <span>ค่าคอมมิชชัน</span>
                         </div>
-                        <div className="text-lg font-black text-purple-900">
+                        <div className="text-xl font-black text-purple-900 tracking-tight">
                           {staff.commission_percent ?? 0}%
+                        </div>
+                        <div className="text-[10px] text-purple-600/70 font-medium mt-0.5">
+                          ส่วนแบ่งต่อบิล
                         </div>
                       </div>
 
-                      {/* Wage / Salary */}
-                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3">
-                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1 mb-0.5">
-                          <Banknote className="w-3 h-3" />
+                      {/* Wage / Salary Card */}
+                      <div className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-3.5 shadow-2xs">
+                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1 mb-1">
+                          <Banknote className="w-3 h-3 text-slate-500" />
                           <span>
                             {staff.wage_type === "monthly"
                               ? "รายเดือน"
@@ -535,41 +565,51 @@ export default function StaffPage() {
                               : "คอมฯ ล้วน"}
                           </span>
                         </div>
-                        <div className="text-lg font-black text-slate-800">
+                        <div className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
                           {staff.wage_type === "none" || !staff.wage_amount
                             ? "ไม่มีเงินเดือน"
                             : `฿${staff.wage_amount.toLocaleString()}`}
                         </div>
+                        <div className="text-[10px] text-slate-400 font-medium mt-0.5">
+                          {staff.wage_type === "monthly"
+                            ? "เงินเดือนพื้นฐาน"
+                            : staff.wage_type === "daily"
+                            ? "ค่าจ้างรายวัน"
+                            : "รับเฉพาะค่าคอมฯ"}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Note if available */}
+                    {/* Note / Skill Pill */}
                     {staff.note && (
-                      <p className="text-xs text-slate-500 bg-slate-50 rounded-xl p-2.5 mb-4 line-clamp-2">
+                      <p className="text-xs text-slate-600 bg-slate-50 border border-slate-100 rounded-xl p-2.5 leading-relaxed">
                         {staff.note}
                       </p>
                     )}
                   </div>
 
-                  {/* Actions Footer */}
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <span className="text-[11px] text-slate-400">
-                      ID: <code className="text-[10px] font-mono">{staff.id.slice(0, 8)}</code>
-                    </span>
+                  {/* Card Bottom Actions Bar */}
+                  <div className="px-5 py-3.5 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between">
+                    <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-400">
+                      <UserCheck className="w-3.5 h-3.5 text-slate-400" />
+                      <span>ช่างของร้าน</span>
+                    </div>
 
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
+                      {/* Edit Button */}
                       <button
                         onClick={() => openEditModal(staff)}
-                        className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors cursor-pointer"
-                        title="แก้ไขข้อมูลช่าง"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-slate-600 hover:text-indigo-600 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 px-3 py-1.5 rounded-xl transition-all shadow-2xs cursor-pointer"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit3 className="w-3.5 h-3.5 text-slate-500" />
+                        <span>แก้ไข</span>
                       </button>
 
+                      {/* Delete Button */}
                       <button
                         onClick={() => handleDeleteStaff(staff.id)}
                         disabled={deletingId === staff.id}
-                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
                         title="ลบช่าง"
                       >
                         {deletingId === staff.id ? (
@@ -602,10 +642,18 @@ export default function StaffPage() {
                     {editingStaff ? "แก้ไขข้อมูลช่าง" : "เพิ่มช่างใหม่ในร้าน"}
                   </h3>
                   <p className="text-xs text-slate-300">
-                    {shop?.name} &bull; อัปโหลดรูปภาพและกำหนดสิทธิ์
+                    {shop?.name} &bull; กำหนดค่าจ้างและ % ส่วนแบ่ง
                   </p>
                 </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
             {/* Modal Form */}
@@ -617,10 +665,10 @@ export default function StaffPage() {
                 </div>
               )}
 
-              {/* Staff Photo Upload Section (Storage: staff_photos) */}
+              {/* Photo Upload Area */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  รูปถ่ายโปรไฟล์ช่าง (บันทึกลง staff_photos)
+                  รูปถ่ายโปรไฟล์ช่าง (Profile Photo)
                 </label>
                 <div className="flex items-center gap-4 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
                   <div className="relative">
@@ -667,7 +715,7 @@ export default function StaffPage() {
                       <span>{previewUrl ? "เปลี่ยนรูปภาพ" : "เลือกรูปโปรไฟล์"}</span>
                     </label>
                     <p className="text-[11px] text-slate-400 mt-1">
-                      รองรับ PNG, JPG, WebP (ขนาดไม่เกิน 5MB)
+                      บันทึกลงโฟลเดอร์ staff_photos (PNG, JPG, WebP)
                     </p>
                   </div>
                 </div>
@@ -710,7 +758,7 @@ export default function StaffPage() {
                   </div>
                 </div>
                 <span className="text-[11px] text-slate-400 mt-1 block">
-                  เช่น 50% หมายถึง ช่างได้ 50% ของยอดบริการ และร้านได้ 50%
+                  เช่น 40% หมายถึง ช่างได้ 40% ของยอดบริการ และร้านได้ 60%
                 </span>
               </div>
 
@@ -725,9 +773,9 @@ export default function StaffPage() {
                     onChange={(e) => setWageType(e.target.value)}
                     className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-base sm:text-sm bg-white focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
                   >
+                    <option value="none">ไม่มีเงินเดือน (คอมฯ ล้วน)</option>
                     <option value="monthly">รายเดือน (Monthly Salary)</option>
                     <option value="daily">รายวัน (Daily Wage)</option>
-                    <option value="none">ไม่มีเงินเดือน (คอมฯ ล้วน)</option>
                   </select>
                 </div>
 
@@ -826,7 +874,7 @@ export default function StaffPage() {
       )}
 
       {/* Clean Footer */}
-      <footer className="w-full max-w-7xl mx-auto px-4 py-4 text-center text-xs text-slate-400 border-t border-slate-200/60 mt-8">
+      <footer className="w-full max-w-6xl mx-auto px-4 py-4 text-center text-xs text-slate-400 border-t border-slate-200/60 mt-8">
         LUMINA &bull; ระบบจัดการช่างและค่าคอมมิชชัน &bull; {shop?.name}
       </footer>
     </div>
