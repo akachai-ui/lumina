@@ -19,7 +19,6 @@ import {
   Loader2,
   ArrowLeft,
   Gift,
-
   Zap,
   ShieldCheck,
   Clock,
@@ -36,7 +35,7 @@ function RegisterContent() {
   // Registration Method Tabs: 'social' | 'email'
   const [signupMethod, setSignupMethod] = useState<"social" | "email">("social");
 
-  // Form Fields
+  // Form Fields (Email Sign-up)
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,17 +49,10 @@ function RegisterContent() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Social Sign-Up (Google / Facebook)
+  // Social Sign-Up (Google / Facebook) - 100% 1-Click
   const handleOAuthSignUp = async (provider: Provider) => {
     setErrorMessage(null);
     setOauthLoading(provider);
-
-    // If user provided a shop name, save temporarily so dashboard can use it
-    if (shopName.trim()) {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("lumina_pending_shop_name", shopName.trim());
-      }
-    }
 
     const timeout = setTimeout(() => {
       setOauthLoading(null);
@@ -369,46 +361,27 @@ function RegisterContent() {
             </div>
           )}
 
-          {/* CATEGORY 1: FAST SOCIAL SIGN-UP */}
+          {/* CATEGORY 1: FAST SOCIAL SIGN-UP (Clean 1-Click with No Redundant Inputs) */}
           {signupMethod === "social" && (
             <div className="space-y-4 animate-in fade-in duration-150">
-              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50/70 via-indigo-50/50 to-purple-50/50 border border-amber-200/60 text-xs text-slate-700 space-y-1">
-                <div className="font-bold text-amber-900 flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5 text-amber-600 fill-amber-600" />
-                  <span>สะดวก รวดเร็ว ไม่ต้องจำรหัสผ่าน</span>
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50/80 via-indigo-50/50 to-purple-50/50 border border-amber-200/70 text-xs text-slate-700 space-y-1.5">
+                <div className="font-bold text-amber-900 flex items-center gap-1.5 text-sm">
+                  <Zap className="w-4 h-4 text-amber-600 fill-amber-600" />
+                  <span>คลิกเดียวเข้าใช้งานได้ทันที</span>
                 </div>
-                <p className="text-[11px] sm:text-xs text-slate-600 leading-relaxed">
-                  ระบบจะเชื่อมต่อข้อมูลจากบัญชี Google หรือ Facebook ของคุณเพื่อสร้างร้านและเริ่มทดลองใช้งานได้ในคลิกเดียว
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  เลือกเชื่อมต่อผ่าน Google หรือ Facebook ได้ทันทีโดยไม่ต้องจำรหัสผ่าน เมื่อเข้าสู่แดชบอร์ดระบบจะมีหน้าจอให้คุณตั้งชื่อร้านค้าและเริ่มเปิดบิลได้ทันที
                 </p>
               </div>
 
-              {/* Optional Shop Name Pre-fill */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  ชื่อร้านซาลอน / บาร์เบอร์ของคุณ (กำหนดตอนนี้ หรือไปตั้งทีหลังก็ได้)
-                </label>
-                <div className="relative rounded-xl shadow-2xs">
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-                    <Store className="h-4 w-4" />
-                  </div>
-                  <input
-                    type="text"
-                    value={shopName}
-                    onChange={(e) => setShopName(e.target.value)}
-                    placeholder="เช่น The Classic Salon & Barber"
-                    className="block w-full rounded-xl border border-slate-200 bg-slate-50/60 pl-10 pr-3.5 py-3 text-base sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
-                  />
-                </div>
-              </div>
-
               {/* Social Buttons */}
-              <div className="space-y-2.5 pt-1">
+              <div className="space-y-3 pt-1">
                 {/* Google Button */}
                 <button
                   type="button"
                   onClick={() => handleOAuthSignUp("google")}
                   disabled={!!oauthLoading}
-                  className="w-full flex items-center justify-center gap-3 rounded-xl border border-slate-300 bg-white py-3 px-4 text-xs sm:text-sm font-bold text-slate-800 shadow-xs hover:bg-slate-50 hover:border-slate-400 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60"
+                  className="w-full flex items-center justify-center gap-3 rounded-2xl border border-slate-300 bg-white py-3.5 px-4 text-xs sm:text-sm font-bold text-slate-800 shadow-xs hover:bg-slate-50 hover:border-slate-400 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60"
                 >
                   {oauthLoading === "google" ? (
                     <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
@@ -435,7 +408,7 @@ function RegisterContent() {
                   <span>
                     {oauthLoading === "google"
                       ? "กำลังเชื่อมต่อกับ Google..."
-                      : "สมัครทดลองใช้ฟรีด้วย Google"}
+                      : "สมัครทดลองใช้ฟรี 2 เดือนด้วย Google"}
                   </span>
                 </button>
 
@@ -444,7 +417,7 @@ function RegisterContent() {
                   type="button"
                   onClick={() => handleOAuthSignUp("facebook")}
                   disabled={!!oauthLoading}
-                  className="w-full flex items-center justify-center gap-3 rounded-xl border border-[#1877F2]/30 bg-[#1877F2] text-white py-3 px-4 text-xs sm:text-sm font-bold shadow-xs hover:bg-[#166fe5] active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60"
+                  className="w-full flex items-center justify-center gap-3 rounded-2xl border border-[#1877F2]/30 bg-[#1877F2] text-white py-3.5 px-4 text-xs sm:text-sm font-bold shadow-xs hover:bg-[#166fe5] active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60"
                 >
                   {oauthLoading === "facebook" ? (
                     <Loader2 className="h-4 w-4 animate-spin text-white" />
@@ -456,12 +429,12 @@ function RegisterContent() {
                   <span>
                     {oauthLoading === "facebook"
                       ? "กำลังเชื่อมต่อกับ Facebook..."
-                      : "สมัครทดลองใช้ฟรีด้วย Facebook"}
+                      : "สมัครทดลองใช้ฟรี 2 เดือนด้วย Facebook"}
                   </span>
                 </button>
               </div>
 
-              <div className="text-center pt-2">
+              <div className="text-center pt-3">
                 <button
                   type="button"
                   onClick={() => setSignupMethod("email")}
