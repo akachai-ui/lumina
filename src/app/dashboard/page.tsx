@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Scissors,
@@ -12,12 +13,15 @@ import {
   ClipboardCheck,
   Store,
   Users,
+  ArrowRight,
+  UserCheck,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/database";
 import TermsConsentModal from "@/components/TermsConsentModal";
 
 type Shop = Database["public"]["Tables"]["shops"]["Row"];
+type Staff = Database["public"]["Tables"]["staff"]["Row"];
 type User = {
   id: string;
   email?: string;
@@ -41,6 +45,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [shop, setShop] = useState<Shop | null>(null);
+  const [staffList, setStaffList] = useState<Staff[]>([]);
   const [shopName, setShopName] = useState("");
   const [phone, setPhone] = useState("");
   const [creatingShop, setCreatingShop] = useState(false);
@@ -68,7 +73,7 @@ export default function DashboardPage() {
         const typedUser = currentUser as User;
         setUser(typedUser);
 
-        // Check if user has accepted the terms and conditions
+        // Check if user has accepted terms
         const hasAcceptedTerms = typedUser.user_metadata?.terms_accepted === true;
         if (!hasAcceptedTerms) {
           setShowTermsModal(true);
@@ -93,7 +98,19 @@ export default function DashboardPage() {
         if (!shopsData || shopsData.length === 0) {
           setShop(null);
         } else {
-          setShop(shopsData[0] as Shop);
+          const currentShop = shopsData[0] as Shop;
+          setShop(currentShop);
+
+          // Fetch staff of this shop
+          const { data: staffData } = await supabase
+            .from("staff")
+            .select("*")
+            .eq("shop_id", currentShop.id)
+            .order("created_at", { ascending: false });
+
+          if (isMounted && staffData) {
+            setStaffList(staffData);
+          }
         }
       } catch (err) {
         console.error("Error loading dashboard data:", err);
@@ -200,9 +217,10 @@ export default function DashboardPage() {
   };
 
   const daysRemaining = calculateDaysRemaining();
+  const activeStaffCount = staffList.filter((s) => s.is_active).length;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
       {/* First-Time Login Consent Modal */}
       <TermsConsentModal
         isOpen={showTermsModal}
@@ -240,7 +258,6 @@ export default function DashboardPage() {
 
           {/* Top Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Quick Link to Staff */}
             <Link
               href="/staff"
               className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 px-2.5 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs"
@@ -269,8 +286,8 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* Main Content: ONLY the Top Banner */}
-      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1">
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1 space-y-6">
         {!shop ? (
           /* First-time Setup Wizard */
           <div className="max-w-md mx-auto bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl mt-6">
@@ -342,30 +359,111 @@ export default function DashboardPage() {
             </form>
           </div>
         ) : (
-          /* ONLY the Top Banner: Shop Name & Package */
-          <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-violet-950 p-6 sm:p-8 rounded-3xl text-white shadow-lg relative overflow-hidden border border-indigo-900/50">
-            <div className="pointer-events-none absolute -right-16 -bottom-16 w-56 h-56 bg-indigo-500/10 rounded-full blur-3xl" />
+          <div className="space-y-6">
+            {/* 1. Top Banner: Shop Name & Package */}
+            <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-violet-950 p-6 sm:p-8 rounded-3xl text-white shadow-lg relative overflow-hidden border border-indigo-900/50">
+              <div className="pointer-events-none absolute -right-16 -bottom-16 w-56 h-56 bg-indigo-500/10 rounded-full blur-3xl" />
 
-            <div className="relative z-10 space-y-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-indigo-300 font-semibold flex items-center gap-1.5">
-                  <Store className="w-4 h-4 text-indigo-400" />
-                  <span>ร้านของคุณ:</span>
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 px-2.5 py-0.5 text-xs font-bold">
-                  <Gift className="w-3 h-3 text-emerald-400" />
-                  <span>แพ็กเกจ: ทดลองใช้ฟรี 2 เดือน (เหลือ {daysRemaining} วัน)</span>
-                </span>
+              <div className="relative z-10 space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-indigo-300 font-semibold flex items-center gap-1.5">
+                    <Store className="w-4 h-4 text-indigo-400" />
+                    <span>ร้านของคุณ:</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 px-2.5 py-0.5 text-xs font-bold">
+                    <Gift className="w-3 h-3 text-emerald-400" />
+                    <span>แพ็กเกจ: ทดลองใช้ฟรี 2 เดือน (เหลือ {daysRemaining} วัน)</span>
+                  </span>
+                </div>
+
+                <h1 className="text-2xl sm:text-4xl font-black tracking-tight flex items-center gap-2">
+                  <span>{shop.name}</span>
+                  <Sparkles className="w-5 h-5 text-amber-400 fill-amber-400 shrink-0" />
+                </h1>
+
+                <p className="text-slate-300 text-xs sm:text-sm">
+                  ยินดีต้อนรับ {user?.user_metadata?.full_name || user?.email} &bull; สิทธิ์การใช้งานปลดล็อกครบทุกฟังก์ชัน
+                </p>
               </div>
+            </div>
 
-              <h1 className="text-2xl sm:text-4xl font-black tracking-tight flex items-center gap-2">
-                <span>{shop.name}</span>
-                <Sparkles className="w-5 h-5 text-amber-400 fill-amber-400 shrink-0" />
-              </h1>
+            {/* 2. Staff Card (Clickable to view Staff List) */}
+            <div className="max-w-md">
+              <Link
+                href="/staff"
+                className="group block bg-white rounded-3xl p-6 border border-slate-200/90 shadow-xs hover:border-purple-500 hover:shadow-xl transition-all duration-200 active:scale-[0.99] relative overflow-hidden"
+              >
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-purple-500/25 group-hover:scale-105 transition-transform">
+                    <Users className="h-7 w-7" />
+                  </div>
 
-              <p className="text-slate-300 text-xs sm:text-sm">
-                ยินดีต้อนรับ {user?.user_metadata?.full_name || user?.email} &bull; สิทธิ์การใช้งานปลดล็อกครบทุกฟังก์ชัน
-              </p>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-purple-50 text-purple-700 border border-purple-200/80 group-hover:bg-purple-100 transition-colors">
+                    <UserCheck className="w-3.5 h-3.5 text-purple-600" />
+                    <span>พร้อมทำงาน {activeStaffCount} คน</span>
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    ทีมช่างของร้าน
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                      {staffList.length}
+                    </span>
+                    <span className="text-base font-extrabold text-slate-500">
+                      คน
+                    </span>
+                  </div>
+                </div>
+
+                {/* Stylists Avatar Preview Row */}
+                {staffList.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div className="flex items-center -space-x-2">
+                      {staffList.slice(0, 4).map((s) => (
+                        <div
+                          key={s.id}
+                          className="relative h-9 w-9 rounded-full overflow-hidden border-2 border-white shadow-xs"
+                          title={s.name}
+                        >
+                          {s.image_url ? (
+                            <Image
+                              src={s.image_url}
+                              alt={s.name}
+                              fill
+                              unoptimized
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="h-full w-full bg-gradient-to-tr from-purple-500 to-indigo-600 text-white text-xs font-bold flex items-center justify-center">
+                              {s.name.charAt(0)}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      {staffList.length > 4 && (
+                        <div className="h-9 w-9 rounded-full bg-slate-100 border-2 border-white text-slate-600 text-xs font-bold flex items-center justify-center shadow-xs">
+                          +{staffList.length - 4}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="inline-flex items-center gap-1 text-xs font-extrabold text-purple-600 group-hover:text-purple-700">
+                      <span>ดูรายชื่อช่าง</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                )}
+
+                {staffList.length === 0 && (
+                  <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-600">
+                    <span>คลิกเพื่อเพิ่มช่างคนแรก</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                )}
+              </Link>
             </div>
           </div>
         )}
