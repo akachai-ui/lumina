@@ -11,6 +11,7 @@ import {
   Gift,
   ClipboardCheck,
   Store,
+  Users,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/database";
@@ -239,6 +240,15 @@ export default function DashboardPage() {
 
           {/* Top Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Quick Link to Staff */}
+            <Link
+              href="/staff"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 px-2.5 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs"
+            >
+              <Users className="w-3.5 h-3.5 text-purple-600" />
+              <span>จัดการช่าง</span>
+            </Link>
+
             <Link
               href="/checklist"
               className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200/80 border border-slate-200 px-2.5 sm:px-3 py-1.5 rounded-xl transition-all shadow-2xs"
