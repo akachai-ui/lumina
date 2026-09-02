@@ -30,6 +30,23 @@ import { compressImage } from "@/lib/image-compression";
 type Staff = Database["public"]["Tables"]["staff"]["Row"];
 type Shop = Database["public"]["Tables"]["shops"]["Row"];
 
+/**
+ * Helper to extract relative storage path from Supabase Public URL
+ * e.g. "https://.../staff_photos/shop-id/123.jpg" -> "shop-id/123.jpg"
+ */
+function extractStoragePath(url: string, bucketName: string): string | null {
+  try {
+    const marker = `/${bucketName}/`;
+    const index = url.indexOf(marker);
+    if (index !== -1) {
+      return decodeURIComponent(url.substring(index + marker.length));
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export default function StaffPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -237,8 +254,23 @@ export default function StaffPage() {
           .from("staff_photos")
           .getPublicUrl(cleanFileName);
 
+        // If editing and had an old photo in storage, delete old photo
+        if (editingStaff?.image_url) {
+          const oldPath = extractStoragePath(editingStaff.image_url, "staff_photos");
+          if (oldPath) {
+            await supabase.storage.from("staff_photos").remove([oldPath]);
+          }
+        }
+
         finalImageUrl = publicUrlData.publicUrl;
         setUploadingPhoto(false);
+      } else if (!imageUrl && editingStaff?.image_url) {
+        // User explicitly clicked remove photo during edit -> delete from storage
+        const oldPath = extractStoragePath(editingStaff.image_url, "staff_photos");
+        if (oldPath) {
+          await supabase.storage.from("staff_photos").remove([oldPath]);
+        }
+        finalImageUrl = null;
       }
 
       const parsedWageAmount =
@@ -332,13 +364,34 @@ export default function StaffPage() {
     }
   };
 
+  /**
+   * Delete staff and automatically cleanup their photo from Supabase Storage
+   */
   const handleDeleteStaff = async (id: string) => {
-    if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลช่างคนนี้ออกจากระบบ?")) {
+    const targetStaff = staffList.find((s) => s.id === id);
+    const staffName = targetStaff?.name || "ช่างคนนี้";
+
+    if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูล "${staffName}" ออกจากระบบ?`)) {
       return;
     }
 
     setDeletingId(id);
     try {
+      // 1. If staff has a photo in staff_photos bucket, remove it first
+      if (targetStaff?.image_url) {
+        const filePath = extractStoragePath(targetStaff.image_url, "staff_photos");
+        if (filePath) {
+          const { error: storageError } = await supabase.storage
+            .from("staff_photos")
+            .remove([filePath]);
+
+          if (storageError) {
+            console.warn("Could not delete photo from storage:", storageError.message);
+          }
+        }
+      }
+
+      // 2. Delete staff row from database
       const { error } = await supabase.from("staff").delete().eq("id", id);
       if (error) throw error;
 
