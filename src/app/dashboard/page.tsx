@@ -15,6 +15,7 @@ import {
   Settings,
   Users,
   ArrowRight,
+  ChevronRight,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/database";
@@ -396,26 +397,83 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Staff Metric Card */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {/* Mobile App Style Staff Card */}
+            <div className="max-w-md w-full">
               <Link
                 href="/staff"
-                className="group bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200/90 hover:border-purple-400 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between"
+                className="group relative block bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/90 hover:border-purple-400 shadow-2xs hover:shadow-lg transition-all duration-200 active:scale-[0.98] active:bg-slate-50/80"
               >
-                <div className="space-y-4">
-                  {/* Top Row: Icon & Status Badge */}
-                  <div className="flex items-center justify-between">
-                    <div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-purple-500/20 group-hover:scale-105 transition-transform shrink-0">
-                      <Users className="h-5 w-5" />
+                {/* 1. Mobile View (< sm): Ergonomic Native Mobile App Touch Card */}
+                <div className="flex sm:hidden items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {/* App Icon Squircle */}
+                    <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-purple-500/25 shrink-0 group-hover:scale-105 transition-transform">
+                      <Users className="h-6 w-6" />
                     </div>
 
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
+                    {/* Text Details & Live Pill */}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-slate-500">ช่างในร้าน</span>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span>พร้อม {activeStaffCount}</span>
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-lg font-black text-slate-900 leading-tight">
+                          {staffList.length} คน
+                        </span>
+
+                        {/* Mobile Stylist Avatars */}
+                        {staffList.length > 0 && (
+                          <div className="flex -space-x-1.5 overflow-hidden pl-1">
+                            {staffList.slice(0, 3).map((staff) => (
+                              <div
+                                key={staff.id}
+                                className="relative inline-block h-6 w-6 rounded-full ring-2 ring-white overflow-hidden bg-slate-100 shrink-0"
+                              >
+                                {staff.image_url ? (
+                                  <Image
+                                    src={staff.image_url}
+                                    alt={staff.name}
+                                    fill
+                                    unoptimized
+                                    className="object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center bg-purple-100 text-purple-700 font-bold text-[10px]">
+                                    {staff.name.charAt(0)}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* iOS Style Chevron Accessory */}
+                  <div className="h-8 w-8 rounded-full bg-slate-100 text-slate-400 group-hover:bg-purple-100 group-hover:text-purple-600 flex items-center justify-center shrink-0 transition-colors">
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                </div>
+
+                {/* 2. Tablet & Desktop View (sm+) */}
+                <div className="hidden sm:flex flex-col justify-between space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-purple-500/20 group-hover:scale-105 transition-transform shrink-0">
+                      <Users className="h-6 w-6" />
+                    </div>
+
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
                       <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                       <span>พร้อมทำงาน {activeStaffCount} คน</span>
                     </span>
                   </div>
 
-                  {/* Main Metric Value */}
                   <div>
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                       จำนวนช่างทั้งหมด
@@ -428,7 +486,6 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  {/* Stylists Avatars Preview Stack */}
                   {staffList.length > 0 ? (
                     <div className="flex items-center gap-2 pt-1">
                       <div className="flex -space-x-2 overflow-hidden py-1">
@@ -463,12 +520,11 @@ export default function DashboardPage() {
                   ) : (
                     <p className="text-xs text-slate-400">ยังไม่มีรายชื่อช่างในร้าน</p>
                   )}
-                </div>
 
-                {/* Bottom Action Footer */}
-                <div className="pt-4 mt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-purple-700 group-hover:text-purple-800 transition-colors">
-                  <span>จัดการรายชื่อช่าง</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-purple-700 group-hover:text-purple-800 transition-colors">
+                    <span>จัดการรายชื่อช่าง</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
               </Link>
             </div>
